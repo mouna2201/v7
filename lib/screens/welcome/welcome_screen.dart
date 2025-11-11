@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../app_language.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/custom_button.dart';
 import '../farmer/login_screen.dart';
 import '../enterprise/enterprise_role_screen.dart';
+import '../../presentation/providers/language_provider.dart';
 import 'dart:math';
 
-class WelcomeScreen extends StatefulWidget {
+class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
+  ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen>
+class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -50,32 +50,33 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final appLang = Provider.of<AppLanguage>(context);
+    final locale = ref.watch(languageProvider);
+    final currentLang = locale.languageCode;
 
     // Textes dynamiques selon la langue
     String welcomeText = {
       'fr': "Bienvenue sur AgroPiquet 🌿",
       'en': "Welcome to AgroPiquet 🌿",
       'ar': "مرحبًا بك في أغروبيكيت 🌿"
-    }[appLang.currentLang]!;
+    }[currentLang]!;
 
     String roleText = {
       'fr': "Choisissez votre rôle pour continuer",
       'en': "Choose your role to continue",
       'ar': "اختر دورك للمتابعة"
-    }[appLang.currentLang]!;
+    }[currentLang]!;
 
     String farmerText = {
       'fr': "Je suis un petit fermier 👨‍🌾",
       'en': "I am a small farmer 👨‍🌾",
       'ar': "أنا فلاح صغير 👨‍🌾"
-    }[appLang.currentLang]!;
+    }[currentLang]!;
 
     String enterpriseText = {
       'fr': "Je suis une entreprise agricole 🏢🌱",
       'en': "I am an agricultural company 🏢🌱",
       'ar': "أنا شركة زراعية 🏢🌱"
-    }[appLang.currentLang]!;
+    }[currentLang]!;
 
     return Scaffold(
       body: Stack(
@@ -121,7 +122,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     child: PopupMenuButton<String>(
                       icon: const Icon(Icons.language, color: Colors.green),
                       onSelected: (value) {
-                        appLang.changeTo(value);
+                        changeLanguage(ref, value);
                       },
                       itemBuilder: (context) => [
                         const PopupMenuItem(
