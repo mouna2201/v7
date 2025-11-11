@@ -15,29 +15,34 @@ class SensorState {
   }
 }
 
-class SensorNotifier extends StateNotifier<SensorState> {
-  SensorNotifier() : super(SensorState(sensors: []));
+class SensorNotifier {
+  final Ref ref;
+  SensorNotifier(this.ref);
 
   void addSensor(SensorData data) {
-    final updated = List<SensorData>.from(state.sensors)
+    final currentState = ref.read(sensorProvider);
+    final updated = List<SensorData>.from(currentState.sensors)
       ..removeWhere((s) => s.deviceId == data.deviceId)
       ..add(data)
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
     
-    state = state.copyWith(sensors: updated);
+    ref.read(sensorProvider.notifier).state = currentState.copyWith(sensors: updated);
   }
 
   void setConnected(bool connected) {
-    state = state.copyWith(isConnected: connected);
+    final currentState = ref.read(sensorProvider);
+    ref.read(sensorProvider.notifier).state = currentState.copyWith(isConnected: connected);
   }
 
   void clear() {
-    state = SensorState(sensors: []);
+    ref.read(sensorProvider.notifier).state = SensorState(sensors: []);
   }
 }
 
-final sensorProvider = StateNotifierProvider<SensorNotifier, SensorState>((
-  ref,
-) {
-  return SensorNotifier();
+final sensorProvider = StateProvider<SensorState>((ref) {
+  return SensorState(sensors: []);
+});
+
+final sensorNotifierProvider = Provider<SensorNotifier>((ref) {
+  return SensorNotifier(ref);
 });

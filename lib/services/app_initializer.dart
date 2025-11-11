@@ -18,14 +18,15 @@ final mqttServiceProvider = Provider<MQTTService>((ref) {
 /// Fonction helper pour initialiser MQTT
 Future<void> setupMQTT(WidgetRef ref) async {
   final mqttService = ref.read(mqttServiceProvider);
+  final sensorNotifier = ref.read(sensorNotifierProvider);
   
   mqttService.onDataReceived = (sensorData) {
-    ref.read(sensorProvider.notifier).addSensor(sensorData);
+    sensorNotifier.addSensor(sensorData);
   };
 
   mqttService.connectionState.listen((state) {
     final connected = state == MqttConnectionState.connected;
-    ref.read(sensorProvider.notifier).setConnected(connected);
+    sensorNotifier.setConnected(connected);
   });
 
   await mqttService.connect();
