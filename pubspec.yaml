@@ -19,6 +19,7 @@ dependencies:
   flutter_riverpod: ^3.0.3
   flutter_localizations:
     sdk: flutter
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

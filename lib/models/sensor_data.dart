@@ -41,18 +41,32 @@ class SensorData {
 
   static SensorData _parseSimpleMessage(String topic, String message, DateTime timestamp) {
     final deviceId = _extractDeviceId(topic);
-    double? temp, humidity;
+    double? temp, humidity, soilMoisture;
     
+    // Parser température
     final tempMatch = RegExp(r'(\d+(?:\.\d+)?)\s*°?\s*[cC]').firstMatch(message);
     if (tempMatch != null) temp = double.parse(tempMatch.group(1)!);
     
+    // Parser humidité
     final humidityMatch = RegExp(r'(\d+(?:\.\d+)?)\s*%').firstMatch(message);
     if (humidityMatch != null) humidity = double.parse(humidityMatch.group(1)!);
+    
+    // Parser humidité du sol (nombre simple pour les topics farm/soil*)
+    if (topic.startsWith('farm/soil')) {
+      try {
+        soilMoisture = double.parse(message.trim());
+      } catch (e) {
+        // Si le parsing échoue, essayer avec regex
+        final soilMatch = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(message);
+        if (soilMatch != null) soilMoisture = double.parse(soilMatch.group(1)!);
+      }
+    }
     
     return SensorData(
       deviceId: deviceId,
       temperature: temp,
       humidity: humidity,
+      soilMoisture: soilMoisture,
       timestamp: timestamp,
       topic: topic,
     );

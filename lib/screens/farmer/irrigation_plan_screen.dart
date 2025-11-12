@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import '../../services/mqtt_service.dart';
+import '../../models/sensor_data.dart';
 
-class IrrigationPlanScreen extends StatelessWidget {
+class IrrigationPlanScreen extends StatefulWidget {
   final String location;
   final String soilType;
-  final List<String> cropTypes; // 🌾 Plusieurs cultures
+  final List<String> cropTypes;
 
   const IrrigationPlanScreen({
     super.key,
@@ -12,6 +14,41 @@ class IrrigationPlanScreen extends StatelessWidget {
     required this.soilType,
     required this.cropTypes,
   });
+
+  @override
+  State<IrrigationPlanScreen> createState() => _IrrigationPlanScreenState();
+}
+
+class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
+  final MQTTService _mqttService = MQTTService();
+  SensorData? _latestSensorData;
+  final List<SensorData> _sensorHistory = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeMQTT();
+  }
+
+  @override
+  void dispose() {
+    _mqttService.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initializeMQTT() async {
+    _mqttService.onDataReceived = (SensorData data) {
+      print('IrrigationScreen: Données reçues - Topic: ${data.topic}, SoilMoisture: ${data.soilMoisture}');
+      setState(() {
+        _latestSensorData = data;
+        _sensorHistory.add(data);
+        if (_sensorHistory.length > 50) {
+          _sensorHistory.removeAt(0);
+        }
+      });
+    };
+    await _mqttService.connect();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,15 +59,18 @@ class IrrigationPlanScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          "Plan d’arrosage - $location",
+          "Plan d'arrosage - ${widget.location}",
           style: const TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          children: cropTypes.map((crop) {
+          children: widget.cropTypes.map((crop) {
             return _buildCropCard(crop);
           }).toList(),
         ),
@@ -40,25 +80,22 @@ class IrrigationPlanScreen extends StatelessWidget {
 
   // 🪴 Carte pour chaque culture
   Widget _buildCropCard(String crop) {
-    final random = Random();
-
     // 🌦️ Données météo simulées
-    final weatherData = [
-      {"day": "Lundi", "temp": "22°", "min": "15°", "rain": random.nextInt(60)},
-      {"day": "Mardi", "temp": "24°", "min": "16°", "rain": random.nextInt(60)},
-      {"day": "Mercredi", "temp": "25°", "min": "17°", "rain": random.nextInt(60)},
-      {"day": "Jeudi", "temp": "23°", "min": "15°", "rain": random.nextInt(60)},
-      {"day": "Vendredi", "temp": "21°", "min": "14°", "rain": random.nextInt(60)},
-      {"day": "Samedi", "temp": "22°", "min": "15°", "rain": random.nextInt(60)},
-      {"day": "Dimanche", "temp": "24°", "min": "16°", "rain": random.nextInt(60)},
-    ];
+    final weatherData = _generateWeatherData();
 
-    // 🌡️ Humidité du sol (20–90%)
-    int soilHumidity = random.nextInt(70) + 20;
+    // 🌡️ Humidité du sol depuis MQTT ou valeur par défaut (0 si cloud vide)
+    int soilHumidity = _latestSensorData?.soilMoisture?.toInt() ?? 0;
+    
+    print('BuildCropCard - LatestSensorData: ${_latestSensorData != null ? "Topic: ${_latestSensorData!.topic}, Soil: ${_latestSensorData!.soilMoisture}" : "null"}');
+    print('BuildCropCard - soilHumidity utilisé: $soilHumidity');
 
     // 💧 Conseil IA
-    String recommendation =
-        _getRecommendation(soilType, crop, weatherData, soilHumidity);
+    String recommendation = _getRecommendation(
+      widget.soilType,
+      crop,
+      weatherData,
+      soilHumidity,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 25),
@@ -66,22 +103,27 @@ class IrrigationPlanScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white10,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Text(
-              "🌿 $crop",
+              "Agriculture - $crop",
               style: const TextStyle(
-                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(height: 10),
           Center(
-            child: Text("🪴 Sol : $soilType",
-                style: const TextStyle(color: Colors.white70)),
+            child: Text(
+              "Sol : ${widget.soilType}",
+              style: const TextStyle(color: Colors.white70),
+            ),
           ),
           const SizedBox(height: 15),
 
@@ -94,23 +136,28 @@ class IrrigationPlanScreen extends StatelessWidget {
               Color iconColor = isRain ? Colors.blueAccent : Colors.amberAccent;
 
               return Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(day["day"] as String,
-                        style: const TextStyle(color: Colors.white)),
+                    Text(
+                      day["day"] as String,
+                      style: const TextStyle(color: Colors.white),
+                    ),
                     Row(
                       children: [
                         Icon(icon, color: iconColor, size: 22),
                         const SizedBox(width: 8),
-                        Text("$rainValue%",
-                            style: const TextStyle(color: Colors.blueAccent)),
+                        Text(
+                          "$rainValue%",
+                          style: const TextStyle(color: Colors.blueAccent),
+                        ),
                       ],
                     ),
-                    Text("${day["temp"]} / ${day["min"]}",
-                        style: const TextStyle(color: Colors.white70)),
+                    Text(
+                      "${day["temp"]} / ${day["min"]}",
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                   ],
                 ),
               );
@@ -129,8 +176,13 @@ class IrrigationPlanScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // 🌡️ Niveau d’humidité du sol
+          // 🌡️ Niveau d’humidité du sol depuis MQTT
           _buildSoilHumidityWidget(soilHumidity),
+
+          const SizedBox(height: 10),
+
+          // 📊 Source des données
+          _buildDataSourceWidget(),
 
           const SizedBox(height: 20),
 
@@ -138,11 +190,11 @@ class IrrigationPlanScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.25),
+              color: Colors.green.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              "🤖 Conseil IA pour $crop :\n$recommendation",
+              "Conseil IA pour $crop :\n$recommendation",
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white),
             ),
@@ -176,7 +228,7 @@ class IrrigationPlanScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "💧 Humidité du sol",
+          "Humidité du sol",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
@@ -198,17 +250,16 @@ class IrrigationPlanScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 6),
-        Text(
-          status,
-          style: TextStyle(color: barColor, fontSize: 13),
-        ),
+        Text(status, style: TextStyle(color: barColor, fontSize: 13)),
       ],
     );
   }
 
   // 🗓️ Calendrier d’arrosage (IA + météo)
   Widget _buildWateringCalendar(
-      List<Map<String, dynamic>> weatherData, String crop) {
+    List<Map<String, dynamic>> weatherData,
+    String crop,
+  ) {
     int wateringInterval = 2; // par défaut tous les 2 jours
 
     if (crop.toLowerCase().contains("olive")) {
@@ -227,7 +278,7 @@ class IrrigationPlanScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "🗓️ Calendrier d’arrosage (IA + météo)",
+          "Calendrier d’arrosage (IA + météo)",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
@@ -264,8 +315,9 @@ class IrrigationPlanScreen extends StatelessWidget {
                 Text(
                   shouldWater ? "Arrose" : "Repos",
                   style: TextStyle(
-                      color: shouldWater ? Colors.cyanAccent : Colors.white38,
-                      fontSize: 11),
+                    color: shouldWater ? Colors.cyanAccent : Colors.white38,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             );
@@ -275,24 +327,98 @@ class IrrigationPlanScreen extends StatelessWidget {
     );
   }
 
-  // 💬 Explication du plan d’arrosage
+  // 🌦️ Générer les données météo simulées
+  List<Map<String, dynamic>> _generateWeatherData() {
+    final random = Random();
+    return [
+      {"day": "Lundi", "temp": "22°", "min": "15°", "rain": random.nextInt(60)},
+      {"day": "Mardi", "temp": "24°", "min": "16°", "rain": random.nextInt(60)},
+      {
+        "day": "Mercredi",
+        "temp": "25°",
+        "min": "17°",
+        "rain": random.nextInt(60),
+      },
+      {"day": "Jeudi", "temp": "23°", "min": "15°", "rain": random.nextInt(60)},
+      {
+        "day": "Vendredi",
+        "temp": "21°",
+        "min": "14°",
+        "rain": random.nextInt(60),
+      },
+      {
+        "day": "Samedi",
+        "temp": "22°",
+        "min": "15°",
+        "rain": random.nextInt(60),
+      },
+      {
+        "day": "Dimanche",
+        "temp": "24°",
+        "min": "16°",
+        "rain": random.nextInt(60),
+      },
+    ];
+  }
+
+  // 📊 Widget pour afficher la source des données
+  Widget _buildDataSourceWidget() {
+    final isUsingMQTTData = _latestSensorData != null;
+    final lastUpdate = _latestSensorData?.timestamp;
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: isUsingMQTTData
+            ? Colors.blue.withValues(alpha: 0.2)
+            : Colors.orange.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isUsingMQTTData ? Icons.cloud_done : Icons.cloud_off,
+            color: isUsingMQTTData ? Colors.blueAccent : Colors.orangeAccent,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              isUsingMQTTData
+                  ? "Données capteurs en temps réel${lastUpdate != null ? " (${lastUpdate.hour}:${lastUpdate.minute.toString().padLeft(2, '0')})" : ""}"
+                  : "Cloud vide - Utilisation des valeurs par défaut (0%)",
+              style: TextStyle(
+                color: isUsingMQTTData
+                    ? Colors.blueAccent
+                    : Colors.orangeAccent,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 💬 Explication du plan d'arrosage
   Widget _buildWateringExplanation(String crop) {
     String text;
     if (crop.toLowerCase().contains("olive")) {
       text =
-          "🫒 L’olivier nécessite peu d’eau : un arrosage léger par semaine suffit.";
+          "L'olivier nécessite peu d'eau : un arrosage léger par semaine suffit.";
     } else if (crop.toLowerCase().contains("blé")) {
-      text = "🌾 Le blé préfère un sol toujours humide : arrosez chaque jour.";
+      text = "Le blé préfère un sol toujours humide : arrosez chaque jour.";
     } else if (crop.toLowerCase().contains("tomate")) {
       text =
-          "🍅 La tomate a besoin d’un arrosage régulier : tous les 2 jours environ.";
+          "La tomate a besoin d'un arrosage régulier : tous les 2 jours environ.";
     } else if (crop.toLowerCase().contains("fraise")) {
-      text = "🍓 Les fraises nécessitent beaucoup d’eau : arrosez quotidiennement.";
+      text =
+          "Les fraises nécessitent beaucoup d'eau : arrosez quotidiennement.";
     } else if (crop.toLowerCase().contains("maïs")) {
-      text = "🌽 Le maïs aime l’humidité : arrosage tous les 3 jours environ.";
+      text = "Le maïs aime l'humidité : arrosage tous les 3 jours environ.";
     } else {
       text =
-          "💧 Arrosage standard : tous les 2 à 3 jours, selon les conditions météo.";
+          "Arrosage standard : tous les 2 à 3 jours, selon les conditions météo.";
     }
 
     return Text(
@@ -304,20 +430,24 @@ class IrrigationPlanScreen extends StatelessWidget {
 
   // 💡 Recommandation IA
   String _getRecommendation(
-      String soil, String crop, List<Map<String, dynamic>> data, int humidity) {
+    String soil,
+    String crop,
+    List<Map<String, dynamic>> data,
+    int humidity,
+  ) {
     bool hasRain = data.any((day) => (day["rain"] as int) > 40);
 
     if (hasRain) {
-      return "Pas d’arrosage prévu cette semaine 🌧️, la pluie couvrira les besoins en eau.";
+      return "Pas d'arrosage prévu cette semaine, la pluie couvrira les besoins en eau.";
     }
 
     String solInfo = "";
     switch (soil.toLowerCase()) {
       case "sableux":
-        solInfo = "Le sol sableux retient peu l’eau.";
+        solInfo = "Le sol sableux retient peu l'eau.";
         break;
       case "argileux":
-        solInfo = "Le sol argileux garde bien l’humidité.";
+        solInfo = "Le sol argileux garde bien l'humidité.";
         break;
       case "limoneux":
         solInfo = "Le sol limoneux est équilibré et fertile.";
@@ -350,11 +480,11 @@ class IrrigationPlanScreen extends StatelessWidget {
     }
 
     if (humidity > 75) {
-      return "$solInfo 🌧️ Sol bien humide — reportez l’arrosage.\n$freq ($besoin)";
+      return "$solInfo Sol bien humide — reportez l'arrosage.\n$freq ($besoin)";
     } else if (humidity < 40) {
-      return "$solInfo ☀️ Sol sec — arrosez dès aujourd’hui.\n$freq ($besoin)";
+      return "$solInfo Sol sec — arrosez dès aujourd'hui.\n$freq ($besoin)";
     } else {
-      return "$solInfo 💧 Sol modérément humide.\n$freq ($besoin)";
+      return "$solInfo Sol modérément humide.\n$freq ($besoin)";
     }
   }
 }
