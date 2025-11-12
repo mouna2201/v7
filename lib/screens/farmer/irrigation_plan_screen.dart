@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import '../../services/mqtt_service.dart';
 import '../../models/sensor_data.dart';
+import '../../theme/app_theme.dart';
 
 class IrrigationPlanScreen extends StatefulWidget {
   final String location;
@@ -38,7 +39,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
   Future<void> _initializeMQTT() async {
     _mqttService.onDataReceived = (SensorData data) {
-      print('IrrigationScreen: Données reçues - Topic: ${data.topic}, SoilMoisture: ${data.soilMoisture}');
+      print(
+        'IrrigationScreen: Données reçues - Topic: ${data.topic}, SoilMoisture: ${data.soilMoisture}',
+      );
       setState(() {
         _latestSensorData = data;
         _sensorHistory.add(data);
@@ -52,27 +55,23 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF101018),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          "Plan d'arrosage - ${widget.location}",
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.white,
+    return Theme(
+      data: AppTheme.farmerTheme,
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            "Plan d'arrosage - ${widget.location}",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: widget.cropTypes.map((crop) {
-            return _buildCropCard(crop);
-          }).toList(),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: widget.cropTypes.map((crop) {
+              return _buildCropCard(crop);
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -85,8 +84,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
     // 🌡️ Humidité du sol depuis MQTT ou valeur par défaut (0 si cloud vide)
     int soilHumidity = _latestSensorData?.soilMoisture?.toInt() ?? 0;
-    
-    print('BuildCropCard - LatestSensorData: ${_latestSensorData != null ? "Topic: ${_latestSensorData!.topic}, Soil: ${_latestSensorData!.soilMoisture}" : "null"}');
+
+    print(
+      'BuildCropCard - LatestSensorData: ${_latestSensorData != null ? "Topic: ${_latestSensorData!.topic}, Soil: ${_latestSensorData!.soilMoisture}" : "null"}',
+    );
     print('BuildCropCard - soilHumidity utilisé: $soilHumidity');
 
     // 💧 Conseil IA
@@ -101,9 +102,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       margin: const EdgeInsets.only(bottom: 25),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white10,
+        color: Colors.black.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,9 +113,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             child: Text(
               "Agriculture - $crop",
               style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
           ),
@@ -122,7 +123,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           Center(
             child: Text(
               "Sol : ${widget.soilType}",
-              style: const TextStyle(color: Colors.white70),
+              style: const TextStyle(color: Colors.black87),
             ),
           ),
           const SizedBox(height: 15),
@@ -156,7 +157,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     ),
                     Text(
                       "${day["temp"]} / ${day["min"]}",
-                      style: const TextStyle(color: Colors.white70),
+                      style: const TextStyle(color: Colors.black87),
                     ),
                   ],
                 ),
@@ -190,13 +191,18 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.25),
+              color: Colors.black.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black, width: 1),
             ),
             child: Text(
               "Conseil IA pour $crop :\n$recommendation",
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
             ),
           ),
         ],
@@ -229,7 +235,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       children: [
         const Text(
           "Humidité du sol",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -246,7 +255,13 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            Text("$humidity%", style: const TextStyle(color: Colors.white)),
+            Text(
+              "$humidity%",
+              style: const TextStyle(
+                color: Color(0xFF1B5E20),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -279,7 +294,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       children: [
         const Text(
           "Calendrier d’arrosage (IA + météo)",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -303,7 +321,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               children: [
                 Text(
                   (day["day"] as String).substring(0, 3),
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: const TextStyle(color: Colors.black54, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Icon(
@@ -424,7 +442,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     return Text(
       text,
       textAlign: TextAlign.center,
-      style: const TextStyle(color: Colors.white70, fontSize: 13),
+      style: const TextStyle(color: Colors.black54, fontSize: 13),
     );
   }
 

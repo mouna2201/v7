@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import 'irrigation_plan_screen.dart';
+import '../../theme/app_theme.dart';
 
 class FarmerFormScreen extends StatefulWidget {
   const FarmerFormScreen({super.key});
@@ -17,64 +18,64 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF101018), // 🌑 fond sombre amélioré
-      appBar: AppBar(
-        title: const Text(
-          "Détails de la parcelle",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+    return Theme(
+      data: AppTheme.farmerTheme,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Détails de la parcelle",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
         ),
-        backgroundColor: const Color(0xFF1B5E20), // Vert foncé
-        centerTitle: true,
-      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(8), // Encore plus réduit
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildLabel("📍 Localisation"),
-            const SizedBox(height: 5),
+            const SizedBox(height: 2), // Encore plus réduit
             _buildTextField(
               controller: location,
               label: "Ex: Bizerte, Tunisie",
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8), // Encore plus réduit
 
             _buildLabel("🌾 Type de sol"),
-            const SizedBox(height: 5),
+            const SizedBox(height: 2), // Encore plus réduit
             DropdownButtonFormField(
               value: soil,
-              dropdownColor: Colors.grey[900],
-              style: const TextStyle(color: Colors.white),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Color(0xFF1B5E20), fontSize: 16, fontWeight: FontWeight.w500),
               items: ["Sableux", "Argileux", "Calcaire", "Limoneux"]
                   .map((e) => DropdownMenuItem(
                         value: e,
                         child: Text(e,
                             style: const TextStyle(
-                                color: Colors.white, fontSize: 16)),
+                                color: Color(0xFF1B5E20), fontSize: 16, fontWeight: FontWeight.w500)),
                       ))
                   .toList(),
               onChanged: (v) => setState(() => soil = v!),
               decoration: _inputDecoration(),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8), // Encore plus réduit
 
             _buildLabel("🌱 Types de cultures"),
-            const SizedBox(height: 5),
+            const SizedBox(height: 2), // Encore plus réduit
             _buildTextField(
               controller: crop,
               label: "Ex: tomate, maïs, olive...",
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8), // Encore plus réduit
 
             _buildLabel("📏 Superficie (hectares)"),
-            const SizedBox(height: 5),
+            const SizedBox(height: 2), // Encore plus réduit
             _buildTextField(
               controller: hectares,
               label: "Ex: 2.5",
               type: TextInputType.number,
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 12), // Encore plus réduit
 
             CustomButton(
               text: "Générer le plan IA 🌱",
@@ -110,6 +111,7 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -118,9 +120,9 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
     return Text(
       text,
       style: const TextStyle(
-        color: Colors.white,
+        color: Color(0xFF1B5E20), // Vert très foncé
         fontWeight: FontWeight.w600,
-        fontSize: 16,
+        fontSize: 12, // Encore plus réduit
         letterSpacing: 0.3,
       ),
     );
@@ -135,7 +137,7 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
     return TextField(
       controller: controller,
       keyboardType: type,
-      style: const TextStyle(color: Colors.white, fontSize: 16),
+      style: const TextStyle(color: Color(0xFF1B5E20), fontSize: 12, fontWeight: FontWeight.w500), // Encore plus réduit
       decoration: _inputDecoration(hint: label),
     );
   }
@@ -144,16 +146,17 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
   InputDecoration _inputDecoration({String? hint}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white54),
+      hintStyle: const TextStyle(color: Color(0xFF66BB6A), fontSize: 12), // Réduit
       filled: true,
-      fillColor: Colors.white10,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), // Encore plus réduit
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.white30),
+        borderRadius: BorderRadius.circular(6), // Encore plus réduit
+        borderSide: const BorderSide(color: Colors.grey, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.greenAccent, width: 1.5),
+        borderRadius: BorderRadius.circular(6), // Encore plus réduit
+        borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1),
       ),
     );
   }

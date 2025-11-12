@@ -6,6 +6,7 @@ import '../../services/mqtt_service.dart'; // NOUVEAU
 import '../../models/user.dart';
 import '../../models/sensor_data.dart'; // NOUVEAU
 import '../../widgets/sensor_card.dart'; // NOUVEAU
+import '../../theme/app_theme.dart';
 
 class EnterpriseDashboardScreen extends StatefulWidget {
   const EnterpriseDashboardScreen({super.key});
@@ -52,19 +53,20 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tableau de bord Admin'),
-        backgroundColor: Colors.green,
-        actions: [
-          // NOUVEAU - Indicateur de connexion MQTT
-          Icon(
-            _isConnected ? Icons.cloud_done : Icons.cloud_off,
-            color: _isConnected ? Colors.white : Colors.yellow,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+    return Theme(
+      data: AppTheme.enterpriseTheme,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Tableau de bord Admin'),
+          actions: [
+            // NOUVEAU - Indicateur de connexion MQTT
+            Icon(
+              _isConnected ? Icons.cloud_done : Icons.cloud_off,
+              color: _isConnected ? Colors.white : const Color(0xFF40B2B0),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -188,8 +190,8 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
           _loadFarmers();
           if (!_isConnected) _initMQTT();
         },
-        backgroundColor: Colors.green,
         child: const Icon(Icons.refresh),
+      ),
       ),
     );
   }

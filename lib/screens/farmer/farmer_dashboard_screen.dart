@@ -4,6 +4,7 @@ import '../../widgets/sensor_card.dart';
 import '../../presentation/providers/sensor_provider.dart';
 import '../providers/weather_dashboard_provider.dart';
 import 'weather_dashboard_screen.dart';
+import '../../theme/app_theme.dart';
 
 class FarmerDashboardScreen extends ConsumerStatefulWidget {
   const FarmerDashboardScreen({super.key});
@@ -27,18 +28,19 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
     final sensorState = ref.watch(sensorProvider);
     final sensors = sensorState.sensors;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Tableau de bord"),
-        backgroundColor: const Color(0xFF1B5E20),
-        actions: [
-          Icon(
-            sensorState.isConnected ? Icons.cloud_done : Icons.cloud_off,
-            color: sensorState.isConnected ? Colors.green : Colors.red,
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
+    return Theme(
+      data: AppTheme.farmerTheme,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Tableau de bord"),
+          actions: [
+            Icon(
+              sensorState.isConnected ? Icons.cloud_done : Icons.cloud_off,
+              color: sensorState.isConnected ? const Color(0xFF6FA86F) : Colors.red,
+            ),
+            const SizedBox(width: 16),
+          ],
+        ),
       body: Column(
         children: [
           // Section Météo
@@ -191,6 +193,7 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                   ),
           ),
         ],
+      ),
       ),
     );
   }

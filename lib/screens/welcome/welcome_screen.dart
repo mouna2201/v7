@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/custom_button.dart';
-import '../farmer/login_screen.dart';
 import '../enterprise/enterprise_role_screen.dart';
+import '../farmer/farmer_form_screen.dart';
 import '../../presentation/providers/language_provider.dart';
 import 'dart:math';
 
@@ -79,6 +79,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     }[currentLang]!;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8), // Blanc cassé
       body: Stack(
         children: [
           _animatedBackground(),
@@ -147,7 +148,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const FarmerLoginScreen()),
+                          builder: (_) => const FarmerFormScreen()),
                     ),
                   ),
                   const SizedBox(height: 15),
