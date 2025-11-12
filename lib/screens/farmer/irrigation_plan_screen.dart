@@ -28,14 +28,11 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   final WeatherService _weatherService = WeatherService();
   SensorData? _latestSensorData;
   final List<SensorData> _sensorHistory = [];
-<<<<<<< HEAD
   WeatherData? _currentWeather;
   bool _isLoadingWeather = true;
   String _weatherError = '';
-=======
   late AppLocalizations _l10n;
   ThemeData _currentTheme = AppTheme.irrigationTheme;
->>>>>>> 94f9bb14c6b3bf19f68cc174e39dc202b6be7b0e
 
   @override
   void initState() {
@@ -491,42 +488,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     final random = Random();
     
     return [
-<<<<<<< HEAD
-      {"day": "Aujourd'hui", "temp": "$currentTemp°", "min": "${currentTemp - 5}°", "rain": _currentWeather!.humidity},
-      {"day": "Demain", "temp": "${currentTemp + random.nextInt(5) - 2}°", "min": "${currentTemp - 3 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "Après-demain", "temp": "${currentTemp + random.nextInt(5) - 1}°", "min": "${currentTemp - 4 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "J+3", "temp": "${currentTemp + random.nextInt(5) - 3}°", "min": "${currentTemp - 6 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "J+4", "temp": "${currentTemp + random.nextInt(5)}°", "min": "${currentTemp - 5 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "J+5", "temp": "${currentTemp + random.nextInt(5) + 1}°", "min": "${currentTemp - 2 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-=======
-      {"day": "monday", "temp": "22°", "min": "15°", "rain": random.nextInt(60)},
-      {"day": "tuesday", "temp": "24°", "min": "16°", "rain": random.nextInt(60)},
-      {
-        "day": "wednesday",
-        "temp": "25°",
-        "min": "17°",
-        "rain": random.nextInt(60),
-      },
-      {"day": "thursday", "temp": "23°", "min": "15°", "rain": random.nextInt(60)},
-      {
-        "day": "friday",
-        "temp": "21°",
-        "min": "14°",
-        "rain": random.nextInt(60),
-      },
-      {
-        "day": "saturday",
-        "temp": "22°",
-        "min": "15°",
-        "rain": random.nextInt(60),
-      },
-      {
-        "day": "sunday",
-        "temp": "24°",
-        "min": "16°",
-        "rain": random.nextInt(60),
-      },
->>>>>>> 94f9bb14c6b3bf19f68cc174e39dc202b6be7b0e
+      {"day": "monday", "temp": "$currentTemp°", "min": "${currentTemp - 5}°", "rain": _currentWeather!.humidity},
+      {"day": "tuesday", "temp": "${currentTemp + random.nextInt(5) - 2}°", "min": "${currentTemp - 3 + random.nextInt(3)}°", "rain": random.nextInt(100)},
+      {"day": "wednesday", "temp": "${currentTemp + random.nextInt(5) - 1}°", "min": "${currentTemp - 4 + random.nextInt(3)}°", "rain": random.nextInt(100)},
+      {"day": "thursday", "temp": "${currentTemp + random.nextInt(5) - 3}°", "min": "${currentTemp - 6 + random.nextInt(3)}°", "rain": random.nextInt(100)},
+      {"day": "friday", "temp": "${currentTemp + random.nextInt(5)}°", "min": "${currentTemp - 5 + random.nextInt(3)}°", "rain": random.nextInt(100)},
+      {"day": "saturday", "temp": "${currentTemp + random.nextInt(5) + 1}°", "min": "${currentTemp - 2 + random.nextInt(3)}°", "rain": random.nextInt(100)},
     ];
   }
 
