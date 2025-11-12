@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/weather_service.dart';
 import '../../models/weather_data.dart';
 
@@ -70,16 +71,7 @@ class WeatherProvider with ChangeNotifier {
   }
 }
 
-class WeatherState {
-  final WeatherData? currentWeather;
-  final List<WeatherData> agriculturalWeather;
-  final bool isLoading;
-  final String error;
-
-  WeatherState({
-    this.currentWeather,
-    this.agriculturalWeather = const [],
-    this.isLoading = false,
-    this.error = '',
-  });
-}
+// Provider pour le WeatherProvider
+final weatherProvider = Provider<WeatherProvider>((ref) {
+  return WeatherProvider();
+});
