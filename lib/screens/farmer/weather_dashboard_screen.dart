@@ -32,7 +32,7 @@ class _WeatherDashboardScreenState extends ConsumerState<WeatherDashboardScreen>
       appBar: AppBar(
         title: const Text('Dashboard Météo'),
         backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
+        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

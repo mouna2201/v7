@@ -42,7 +42,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
   Future<void> _loadWeatherForLocation() async {
     print('🌤️ DÉMARRAGE CHARGEMENT MÉTÉO pour: "${widget.location}"');
-    
+
     try {
       setState(() {
         _isLoadingWeather = true;
@@ -50,16 +50,18 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       });
 
       print('📡 APPEL API OpenWeatherMap pour: ${widget.location}');
-      
+
       // Utiliser la localisation saisie par l'utilisateur
       _currentWeather = await _weatherService.getWeatherByCity(widget.location);
-      
-      print('✅ SUCCÈS API: ${_currentWeather!.cityName} - ${_currentWeather!.temperature}°C - ${_currentWeather!.description}');
-      
+
+      print(
+        '✅ SUCCÈS API: ${_currentWeather!.cityName} - ${_currentWeather!.temperature}°C - ${_currentWeather!.description}',
+      );
+
       setState(() {
         _isLoadingWeather = false;
       });
-      
+
       print('🎯 MISE À JOUR INTERFACE: météo affichée avec succès');
     } catch (e) {
       print('❌ ERREUR API MÉTÉO: $e');
@@ -116,7 +118,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               onPressed: () {
                 // TODO: Implémenter le changement de thème
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Changement de thème bientôt disponible")),
+                  const SnackBar(
+                    content: Text("Changement de thème bientôt disponible"),
+                  ),
                 );
               },
             ),
@@ -131,9 +135,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               margin: const EdgeInsets.all(8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color.fromARGB(255, 26, 26, 26),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue, width: 2),
+                border: Border.all(
+                  color: const Color.fromARGB(255, 117, 118, 119),
+                  width: 1,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.blue.withValues(alpha: 0.2),
@@ -159,7 +166,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  
+
                   if (_isLoadingWeather)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -169,7 +176,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.blue,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -193,7 +202,11 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline, color: Colors.red, size: 20),
+                          Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -218,13 +231,17 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.check_circle, color: Colors.green, size: 20),
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               '✅ ${_currentWeather!.cityName}: ${_currentWeather!.temperature.round()}°C - ${_currentWeather!.description}',
                               style: const TextStyle(
-                                color: Colors.black87,
+                                color: Colors.white,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -236,7 +253,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 ],
               ),
             ),
-            
+
             // 📋 Contenu principal
             Expanded(
               child: SingleChildScrollView(
@@ -526,14 +543,44 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     // Utiliser les vraies données météo
     final currentTemp = _currentWeather!.temperature.round();
     final random = Random();
-    
+
     return [
-      {"day": "monday", "temp": "$currentTemp°", "min": "${currentTemp - 5}°", "rain": _currentWeather!.humidity},
-      {"day": "tuesday", "temp": "${currentTemp + random.nextInt(5) - 2}°", "min": "${currentTemp - 3 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "wednesday", "temp": "${currentTemp + random.nextInt(5) - 1}°", "min": "${currentTemp - 4 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "thursday", "temp": "${currentTemp + random.nextInt(5) - 3}°", "min": "${currentTemp - 6 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "friday", "temp": "${currentTemp + random.nextInt(5)}°", "min": "${currentTemp - 5 + random.nextInt(3)}°", "rain": random.nextInt(100)},
-      {"day": "saturday", "temp": "${currentTemp + random.nextInt(5) + 1}°", "min": "${currentTemp - 2 + random.nextInt(3)}°", "rain": random.nextInt(100)},
+      {
+        "day": "monday",
+        "temp": "$currentTemp°",
+        "min": "${currentTemp - 5}°",
+        "rain": _currentWeather!.humidity,
+      },
+      {
+        "day": "tuesday",
+        "temp": "${currentTemp + random.nextInt(5) - 2}°",
+        "min": "${currentTemp - 3 + random.nextInt(3)}°",
+        "rain": random.nextInt(100),
+      },
+      {
+        "day": "wednesday",
+        "temp": "${currentTemp + random.nextInt(5) - 1}°",
+        "min": "${currentTemp - 4 + random.nextInt(3)}°",
+        "rain": random.nextInt(100),
+      },
+      {
+        "day": "thursday",
+        "temp": "${currentTemp + random.nextInt(5) - 3}°",
+        "min": "${currentTemp - 6 + random.nextInt(3)}°",
+        "rain": random.nextInt(100),
+      },
+      {
+        "day": "friday",
+        "temp": "${currentTemp + random.nextInt(5)}°",
+        "min": "${currentTemp - 5 + random.nextInt(3)}°",
+        "rain": random.nextInt(100),
+      },
+      {
+        "day": "saturday",
+        "temp": "${currentTemp + random.nextInt(5) + 1}°",
+        "min": "${currentTemp - 2 + random.nextInt(3)}°",
+        "rain": random.nextInt(100),
+      },
     ];
   }
 
