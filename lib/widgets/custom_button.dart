@@ -9,27 +9,36 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        height: 55,
+        height: 46,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: outlined ? Colors.transparent : Colors.green.shade700,
-          border: outlined ? Border.all(color: Colors.green.shade700, width: 2) : null,
+          color: outlined ? Colors.transparent : primary,
+          border: outlined ? Border.all(color: primary, width: 2) : null,
           borderRadius: BorderRadius.circular(14),
           boxShadow: outlined
               ? []
-              : [BoxShadow(color: Colors.green.shade200, blurRadius: 6, offset: const Offset(0, 3))],
+              : [
+                  BoxShadow(
+                    color: primary.withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
         ),
         alignment: Alignment.center,
         child: Text(
           text,
           style: TextStyle(
-              color: outlined ? Colors.green.shade700 : Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600),
+            color: outlined ? primary : Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
+import '../../theme/app_theme.dart';
 
 class EnterpriseFormScreen extends StatelessWidget {
   const EnterpriseFormScreen({super.key});
@@ -11,25 +12,58 @@ class EnterpriseFormScreen extends StatelessWidget {
     TextEditingController cropController = TextEditingController();
     TextEditingController hectaresController = TextEditingController();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text("Formulaire Fermier Entreprise")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+    return Theme(
+      data: AppTheme.enterpriseTheme,
+      child: Scaffold(
+        appBar: AppBar(title: const Text("Formulaire Fermier Entreprise")),
+        body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(controller: locationController, decoration: const InputDecoration(labelText: "Localisation")),
-            const SizedBox(height: 15),
-            TextField(controller: soilController, decoration: const InputDecoration(labelText: "Type de sol")),
-            const SizedBox(height: 15),
-            TextField(controller: cropController, decoration: const InputDecoration(labelText: "Type de culture / plante")),
-            const SizedBox(height: 15),
-            TextField(controller: hectaresController, decoration: const InputDecoration(labelText: "Nombre d'hectares")),
-            const SizedBox(height: 25),
-            CustomButton(
-              text: "Générer calendrier d'arrosage",
-              onTap: () {
-                // Ici tu appelleras ton IA ou API météo pour le calendrier
-              },
+            TextField(
+              controller: locationController,
+              decoration: const InputDecoration(
+                labelText: "Localisation",
+                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: soilController,
+              decoration: const InputDecoration(
+                labelText: "Type de sol",
+                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: cropController,
+              decoration: const InputDecoration(
+                labelText: "Type de culture / plante",
+                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: hectaresController,
+              decoration: const InputDecoration(
+                labelText: "Nombre d'hectares",
+                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: 230,
+                child: CustomButton(
+                  text: "Générer calendrier d'arrosage",
+                  onTap: () {
+                    // Ici tu appelleras ton IA ou API météo pour le calendrier
+                  },
+                ),
+              ),
             ),
           ],
         ),

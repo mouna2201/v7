@@ -51,7 +51,6 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
       print('📡 APPEL API OpenWeatherMap pour: ${widget.location}');
 
-      // Utiliser la localisation saisie par l'utilisateur
       _currentWeather = await _weatherService.getWeatherByCity(widget.location);
 
       print(
@@ -103,6 +102,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Générer une seule fois la météo pour tout l'écran, commune à toutes les cultures
+    final weatherData = _generateWeatherData();
+
     return Theme(
       data: AppTheme.irrigationTheme,
       child: Scaffold(
@@ -116,7 +118,6 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             IconButton(
               icon: const Icon(Icons.palette, color: Colors.white),
               onPressed: () {
-                // TODO: Implémenter le changement de thème
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("Changement de thème bientôt disponible"),
@@ -153,7 +154,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.cloud, color: Colors.blue, size: 24),
+                      const Icon(Icons.cloud, color: Colors.blue, size: 24),
                       const SizedBox(width: 8),
                       Text(
                         "MÉTÉO - ${widget.location.toUpperCase()}",
@@ -176,7 +177,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
+                            valueColor: const AlwaysStoppedAnimation<Color>(
                               Colors.blue,
                             ),
                           ),
@@ -202,7 +203,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.error_outline,
                             color: Colors.red,
                             size: 20,
@@ -229,38 +230,153 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.green, width: 1),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 20,
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '✅ ${_currentWeather!.cityName}: '
+                                  '${_currentWeather!.temperature.round()}°C - '
+                                  '${_currentWeather!.description}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              '✅ ${_currentWeather!.cityName}: ${_currentWeather!.temperature.round()}°C - ${_currentWeather!.description}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                          const SizedBox(height: 12),
+                          if (weatherData.isNotEmpty) ...[
+                            const Text(
+                              'Prévision sur 1 semaine',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 6),
+
+                            // Plan météo détaillé sur une semaine
+                            Column(
+                              children: weatherData.map((day) {
+                                final int rainValue = day['rain'] as int;
+                                final String temp = day['temp'] as String;
+                                final String minTemp = day['min'] as String;
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 3),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        _getDayName(day['day'] as String),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.thermostat,
+                                            color: Colors.orangeAccent,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$temp / $minTemp',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.water_drop,
+                                            color: Colors.blueAccent,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$rainValue%',
+                                            style: const TextStyle(
+                                              color: Colors.blueAccent,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            // Humidité moyenne de la semaine (moyenne des rain %)
+                            Builder(
+                              builder: (context) {
+                                final totalRain = weatherData
+                                    .map((d) => d['rain'] as int)
+                                    .fold<int>(0, (sum, v) => sum + v);
+                                final avgRain =
+                                    (totalRain / weatherData.length).round();
+                                return Text(
+                                  'Humidité moyenne de la semaine : $avgRain%',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ],
                       ),
                     ),
                 ],
               ),
             ),
-
-            // 📋 Contenu principal
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
-                  children: widget.cropTypes.map((crop) {
-                    return _buildCropCard(crop);
+                  children: widget.cropTypes.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final crop = entry.value;
+
+                    return TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: Duration(milliseconds: 400 + index * 120),
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 20 * (1 - value)),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _buildCropCard(crop, weatherData),
+                    );
                   }).toList(),
                 ),
               ),
@@ -271,8 +387,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     );
   }
 
-  Widget _buildCropCard(String crop) {
-    final weatherData = _generateWeatherData();
+  Widget _buildCropCard(String crop, List<Map<String, dynamic>> weatherData) {
     int soilHumidity = _latestSensorData?.soilMoisture?.toInt() ?? 0;
 
     print(
@@ -291,70 +406,74 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       margin: const EdgeInsets.only(bottom: 25),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF333333)),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black54,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Text(
-              "${_l10n.agriculture} - ${_getCropTranslation(crop)}",
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _getCropIcon(crop),
+                  color: Colors.lightGreenAccent,
+                  size: 22,
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Center(
-            child: Text(
-              "${_l10n.soil} : ${_getSoilTypeTranslation(widget.soilType)}",
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ),
-          const SizedBox(height: 15),
-
-          Column(
-            children: weatherData.map((day) {
-              final int rainValue = day["rain"] as int;
-              bool isRain = rainValue > 40;
-              IconData icon = isRain ? Icons.cloud : Icons.wb_sunny;
-              Color iconColor = isRain ? Colors.blueAccent : Colors.amberAccent;
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _getDayName(day["day"] as String),
-                      style: const TextStyle(color: Colors.white),
+                      _getCropTranslation(crop),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                    Row(
-                      children: [
-                        Icon(icon, color: iconColor, size: 22),
-                        const SizedBox(width: 8),
-                        Text(
-                          "$rainValue%",
-                          style: const TextStyle(color: Colors.blueAccent),
-                        ),
-                      ],
-                    ),
+                    const SizedBox(height: 2),
                     Text(
-                      "${day["temp"]} / ${day["min"]}",
-                      style: const TextStyle(color: Colors.white70),
+                      "${_l10n.soil} : ${_getSoilTypeTranslation(widget.soilType)}",
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
-              );
-            }).toList(),
+              ),
+            ],
           ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            height: 1,
+            color: Colors.white.withValues(alpha: 0.15),
+          ),
+          const SizedBox(height: 14),
 
-          const SizedBox(height: 20),
-
+          // On n'affiche plus la météo détaillée dans chaque carte culture.
+          // On utilise toujours weatherData pour calculer le calendrier d'arrosage.
           _buildWateringCalendar(weatherData, crop),
 
           const SizedBox(height: 15),
@@ -527,20 +646,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   }
 
   // 🌤️ Générer les données météo à partir de l'API réelle
+  // Si l'API ne répond pas, on retourne une liste vide (pas de météo fictive)
   List<Map<String, dynamic>> _generateWeatherData() {
     if (_currentWeather == null) {
-      // Données par défaut si l'API n'a pas répondu
-      return [
-        {"day": "monday", "temp": "22°", "min": "15°", "rain": 30},
-        {"day": "tuesday", "temp": "24°", "min": "16°", "rain": 20},
-        {"day": "wednesday", "temp": "25°", "min": "17°", "rain": 40},
-        {"day": "thursday", "temp": "23°", "min": "15°", "rain": 25},
-        {"day": "friday", "temp": "21°", "min": "14°", "rain": 35},
-        {"day": "saturday", "temp": "22°", "min": "15°", "rain": 15},
-      ];
+      return [];
     }
 
-    // Utiliser les vraies données météo
     final currentTemp = _currentWeather!.temperature.round();
     final random = Random();
 
@@ -639,6 +750,22 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     }
   }
 
+  IconData _getCropIcon(String crop) {
+    final lower = crop.toLowerCase();
+    if (lower.contains('olive')) {
+      return Icons.park;
+    } else if (lower.contains('blé')) {
+      return Icons.grass;
+    } else if (lower.contains('tomate')) {
+      return Icons.local_florist;
+    } else if (lower.contains('fraise')) {
+      return Icons.spa;
+    } else if (lower.contains('maïs')) {
+      return Icons.eco;
+    }
+    return Icons.agriculture;
+  }
+
   Widget _buildDataSourceWidget() {
     final isUsingMQTTData = _latestSensorData != null;
     final lastUpdate = _latestSensorData?.timestamp;
@@ -665,9 +792,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                   ? "${_l10n.realTimeData}${lastUpdate != null ? " (${lastUpdate.hour}:${lastUpdate.minute.toString().padLeft(2, '0')})" : ""}"
                   : _l10n.cloudEmpty,
               style: TextStyle(
-                color: isUsingMQTTData
-                    ? Colors.blueAccent
-                    : Colors.orangeAccent,
+                color:
+                    isUsingMQTTData ? Colors.blueAccent : Colors.orangeAccent,
                 fontSize: 12,
               ),
             ),

@@ -102,9 +102,13 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
             ),
             const SizedBox(height: 12), // Encore plus réduit
 
-            CustomButton(
-              text: _l10n.generateAIPlan,
-              onTap: () {
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: 220,
+                child: CustomButton(
+                  text: _l10n.generateAIPlan,
+                  onTap: () {
                 if (location.text.isEmpty || crop.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -131,6 +135,8 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
                   ),
                 );
               },
+                ),
+              ),
             ),
           ],
         ),

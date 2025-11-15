@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -13,9 +13,9 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.0.19
-  intl: ^0.20.2
+  # intl: ^0.20.2  <-- supprimé pour éviter le conflit
   mqtt_client: ^10.11.1
-  provider: ^6.0.5   # ⚡ AJOUTÉ
+  provider: ^6.0.5
   flutter_riverpod: ^3.0.3
   flutter_localizations:
     sdk: flutter

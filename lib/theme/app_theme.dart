@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // Thème pour les fermiers (vert très contrasté)
   static ThemeData farmerTheme = ThemeData(
-    primaryColor: const Color(0xFF2E7D32), // Vert foncé pour maximum contraste
-    scaffoldBackgroundColor: const Color(0xFFF9FBE7), // Fond vert très très clair
+    primaryColor: const Color(0xFF2E7D32), // Vert foncé nature
+    scaffoldBackgroundColor: const Color(0xFFE8F5E9), // Vert très clair
     colorScheme: ColorScheme.light(
       primary: const Color(0xFF2E7D32), // Vert foncé
       secondary: const Color(0xFF66BB6A), // Vert moyen
       surface: Colors.white,
-      surfaceContainer: const Color(0xFFF9FBE7),
+      surfaceContainer: const Color(0xFFE8F5E9),
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF2E7D32), // Vert foncé
@@ -35,7 +35,7 @@ class AppTheme {
       titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)), // Plus petit
       titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1B5E20)), // Plus petit
       bodyMedium: TextStyle(fontSize: 12, color: Color(0xFF1B5E20)), // Plus petit
-      bodySmall: TextStyle(fontSize: 10, color: Color(0xFF2E7D32)), // Plus petit
+      bodySmall: TextStyle(fontSize: 10, color: Color(0xFF66BB6A)), // Plus petit
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -57,18 +57,18 @@ class AppTheme {
     ),
   );
 
-  // Thème pour les entreprises (vert d'eau professionnel)
+  // Thème pour les entreprises (bleu professionnel)
   static ThemeData enterpriseTheme = ThemeData(
-    primaryColor: const Color(0xFF00897B), // Vert d'eau professionnel
-    scaffoldBackgroundColor: const Color(0xFFE0F2F1), // Vert d'eau très clair
+    primaryColor: const Color(0xFF1565C0), // Bleu pro
+    scaffoldBackgroundColor: const Color(0xFFE3F2FD), // Bleu très clair
     colorScheme: ColorScheme.light(
-      primary: const Color(0xFF00897B), // Vert d'eau
-      secondary: const Color(0xFF4DB6AC), // Vert d'eau moyen
+      primary: const Color(0xFF1565C0), // Bleu
+      secondary: const Color(0xFF90CAF9), // Bleu moyen
       surface: Colors.white,
-      surfaceContainer: const Color(0xFFE0F2F1),
+      surfaceContainer: const Color(0xFFE3F2FD),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF00897B), // Vert d'eau
+      backgroundColor: Color(0xFF1565C0), // Bleu pro
       foregroundColor: Colors.white,
       elevation: 2,
     ),
@@ -84,21 +84,21 @@ class AppTheme {
     cardTheme: const CardThemeData(
       color: Colors.white,
       elevation: 3,
-      shadowColor: Color(0xFF00897B),
+      shadowColor: Color(0xFF1565C0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(6))), // Plus petit
     ),
     textTheme: const TextTheme(
-      titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF00695C)), // Plus petit et plus foncé
-      titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF00897B)), // Plus petit
-      bodyMedium: TextStyle(fontSize: 12, color: Color(0xFF00897B)), // Plus petit
-      bodySmall: TextStyle(fontSize: 10, color: Color(0xFF4DB6AC)), // Plus petit
+      titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0D47A1)), // Titre bleu foncé
+      titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1565C0)),
+      bodyMedium: TextStyle(fontSize: 12, color: Color(0xFF1565C0)),
+      bodySmall: TextStyle(fontSize: 10, color: Color(0xFF90CAF9)),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6), // Plus petit
-        borderSide: const BorderSide(color: Color(0xFF00897B), width: 1),
+        borderSide: const BorderSide(color: Color(0xFF1565C0), width: 1),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6), // Plus petit
@@ -106,10 +106,10 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6), // Plus petit
-        borderSide: const BorderSide(color: Color(0xFF00897B), width: 1),
+        borderSide: const BorderSide(color: Color(0xFF1565C0), width: 1),
       ),
-      labelStyle: const TextStyle(color: Color(0xFF00897B), fontWeight: FontWeight.w600, fontSize: 12),
-      hintStyle: const TextStyle(color: Color(0xFF4DB6AC), fontSize: 10),
+      labelStyle: const TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.w600, fontSize: 12),
+      hintStyle: const TextStyle(color: Color(0xFF90CAF9), fontSize: 10),
     ),
   );
 

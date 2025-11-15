@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/weather_service.dart';
 import '../../models/weather_data.dart';
 
-class WeatherProvider with ChangeNotifier {
+class WeatherNotifier with ChangeNotifier {
   final WeatherService _weatherService = WeatherService();
 
   WeatherData? _currentWeather;
@@ -71,7 +71,7 @@ class WeatherProvider with ChangeNotifier {
   }
 }
 
-// Provider pour le WeatherProvider
-final weatherProvider = Provider<WeatherProvider>((ref) {
-  return WeatherProvider();
+// Provider pour le WeatherNotifier
+final weatherProvider = Provider<WeatherNotifier>((ref) {
+  return WeatherNotifier();
 });
