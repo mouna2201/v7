@@ -47,7 +47,6 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     return Theme(
       data: AppTheme.enterpriseTheme,
       child: Scaffold(
@@ -112,43 +111,21 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _password,
-                        decoration: const InputDecoration(labelText: 'Mot de passe'),
+                        decoration:
+                            const InputDecoration(labelText: 'Mot de passe'),
                         obscureText: true,
                       ),
                       const SizedBox(height: 20),
                       _loading
                           ? const CircularProgressIndicator()
-                          : CustomButton(text: 'Créer fermier', onTap: _addFarmer),
+                          : CustomButton(
+                              text: 'Créer fermier', onTap: _addFarmer),
                     ],
                   ),
                 ),
               ),
             ],
           ),
-=======
-    return Scaffold(
-      appBar: AppBar(title: const Text('Ajouter un fermier')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-                controller: _name,
-                decoration: const InputDecoration(labelText: 'Nom')),
-            TextField(
-                controller: _email,
-                decoration: const InputDecoration(labelText: 'Email')),
-            TextField(
-              controller: _password,
-              decoration: const InputDecoration(labelText: 'Mot de passe'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            _loading
-                ? const CircularProgressIndicator()
-                : CustomButton(text: 'Créer fermier', onTap: _addFarmer),
-          ],
->>>>>>> 589f17696b050f08cbb08b4626e2e71395d23c2e
         ),
       ),
     );

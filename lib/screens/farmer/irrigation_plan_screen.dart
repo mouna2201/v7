@@ -168,7 +168,6 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-
                   if (_isLoadingWeather)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -303,8 +302,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                   final String minTemp = day['min'] as String;
 
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 3),
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 3),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -497,11 +496,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             color: Colors.white.withValues(alpha: 0.15),
           ),
           const SizedBox(height: 14),
-
           _buildWateringCalendar(weatherData, crop),
-
           const SizedBox(height: 15),
-
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -515,17 +511,11 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             ),
             child: _buildWateringExplanation(crop),
           ),
-
           const SizedBox(height: 20),
-
           _buildSoilHumidityWidget(soilHumidity),
-
           const SizedBox(height: 10),
-
           _buildDataSourceWidget(),
-
           const SizedBox(height: 20),
-
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -578,12 +568,13 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
+          SizedBox(
+            width: double.infinity,
+            height: 80,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
                 'assets/images/humidity.png', // 👉 adapte ce chemin si besoin
-                height: 80,
                 fit: BoxFit.cover,
               ),
             ),

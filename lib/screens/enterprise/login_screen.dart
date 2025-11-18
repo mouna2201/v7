@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
       return;
-    } else if (widget.role == "superviseur" && user.role != "superviseur") {
+    } else if (widget.role == "superviseur" && user.role != "enterprise") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Seul un superviseur peut se connecter ici"),

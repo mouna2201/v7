@@ -53,65 +53,14 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
-<<<<<<< HEAD
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 10),
-              Text(
-                'Portail Admin Entreprise',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Gérez vos fermiers depuis un tableau de bord simple et moderne.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 24),
-
-              // Bouton principal pour ajouter un fermier
-=======
             children: [
               // BOUTON EXISTANT
->>>>>>> 589f17696b050f08cbb08b4626e2e71395d23c2e
               CustomButton(
                 text: 'Ajouter un fermier',
                 onTap: () async {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-<<<<<<< HEAD
-                      builder: (_) => const EnterpriseAddFarmerScreen(),
-                    ),
-                  );
-                  _loadFarmers();
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Liste simplifiée des fermiers
-              Expanded(
-                child: _farmers.isEmpty
-                    ? const Center(
-                        child: Text('Aucun fermier enregistré pour le moment'),
-                      )
-                    : ListView.builder(
-                        itemCount: _farmers.length,
-                        itemBuilder: (context, index) {
-                          final farmer = _farmers[index];
-                          return ListTile(
-                            leading: const CircleAvatar(
-                              child: Icon(Icons.person),
-                            ),
-                            title: Text(farmer.name),
-                            subtitle: Text(farmer.email),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ),
-=======
                         builder: (_) => const EnterpriseAddFarmerScreen()),
                   );
                 },
@@ -198,7 +147,6 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
           },
           child: const Icon(Icons.refresh),
         ),
->>>>>>> 589f17696b050f08cbb08b4626e2e71395d23c2e
       ),
     );
   }
