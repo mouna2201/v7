@@ -6,7 +6,8 @@ class EnterpriseAddFarmerScreen extends StatefulWidget {
   const EnterpriseAddFarmerScreen({super.key});
 
   @override
-  State<EnterpriseAddFarmerScreen> createState() => _EnterpriseAddFarmerScreenState();
+  State<EnterpriseAddFarmerScreen> createState() =>
+      _EnterpriseAddFarmerScreenState();
 }
 
 class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
@@ -14,10 +15,11 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _loading = false;
+  final AuthService _authService = AuthService();
 
   Future<void> _addFarmer() async {
     setState(() => _loading = true);
-    final error = await AuthService.register(
+    final result = await _authService.register(
       name: _name.text,
       email: _email.text,
       password: _password.text,
@@ -25,15 +27,19 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
     );
     setState(() => _loading = false);
 
-    if (error != null) {
+    if (!result['success']) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(result['message']?.toString() ?? 'Erreur inscription'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fermier ajouté !'), backgroundColor: Colors.green),
+      const SnackBar(
+          content: Text('Fermier ajouté !'), backgroundColor: Colors.green),
     );
     Navigator.pop(context);
   }
@@ -46,8 +52,12 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nom')),
-            TextField(controller: _email, decoration: const InputDecoration(labelText: 'Email')),
+            TextField(
+                controller: _name,
+                decoration: const InputDecoration(labelText: 'Nom')),
+            TextField(
+                controller: _email,
+                decoration: const InputDecoration(labelText: 'Email')),
             TextField(
               controller: _password,
               decoration: const InputDecoration(labelText: 'Mot de passe'),

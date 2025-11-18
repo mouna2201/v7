@@ -16,6 +16,7 @@ class _EnterpriseRegisterScreenState extends State<EnterpriseRegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
+  final AuthService _authService = AuthService();
 
   Future<void> _register() async {
     final name = _nameController.text.trim();
@@ -34,18 +35,21 @@ class _EnterpriseRegisterScreenState extends State<EnterpriseRegisterScreen> {
 
     setState(() => _loading = true);
 
-    final error = await AuthService.register(
+    final result = await _authService.register(
       name: name,
       email: email,
       password: password,
-      role: 'admin', // ✅ Toujours admin ici
+      role: 'admin',
     );
 
     setState(() => _loading = false);
 
-    if (error != null) {
+    if (!result['success']) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(result['message']?.toString() ?? 'Erreur inscription'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }

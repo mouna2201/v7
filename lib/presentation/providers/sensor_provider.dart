@@ -25,14 +25,16 @@ class SensorNotifier {
     final updated = List<SensorData>.from(currentState.sensors)
       ..removeWhere((s) => s.deviceId == data.deviceId)
       ..add(data)
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    
-    ref.read(sensorProvider.notifier).state = currentState.copyWith(sensors: updated);
+      ..sort((a, b) => b.timestampMesure.compareTo(a.timestampMesure));
+
+    ref.read(sensorProvider.notifier).state =
+        currentState.copyWith(sensors: updated);
   }
 
   void setConnected(bool connected) {
     final currentState = ref.read(sensorProvider);
-    ref.read(sensorProvider.notifier).state = currentState.copyWith(isConnected: connected);
+    ref.read(sensorProvider.notifier).state =
+        currentState.copyWith(isConnected: connected);
   }
 
   void clear() {

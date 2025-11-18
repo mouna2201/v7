@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _loading = false;
+  final AuthService _authService = AuthService();
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
@@ -35,11 +36,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _loading = true);
 
-    final user = await AuthService.login(email, password);
+    final result = await _authService.login(email: email, password: password);
 
     setState(() => _loading = false);
 
-    if (user == null) {
+    if (!result['success']) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Email ou mot de passe incorrect'),
@@ -48,6 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       return;
     }
+
+    final user = result['user'];
 
     // Vérifie si l'utilisateur correspond au rôle
     if (widget.role == "admin" && user.role != "admin") {
