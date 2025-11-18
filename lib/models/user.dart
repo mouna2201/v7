@@ -1,4 +1,46 @@
-class UserModel {
+// models/user.dart
+class User {
+  final String id;
+  final String email;
+  final String name;
+  final String role; // 'farmer', 'enterprise', 'admin'
+
+  User({
+    required this.id,
+    required this.email,
+    required this.name,
+    required this.role,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'] ?? '',
+      email: json['email'] ?? '',
+      name: json['name'] ?? '',
+      role: json['role'] ?? 'farmer',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'name': name,
+      'role': role,
+    };
+  }
+
+  // Méthodes utilitaires
+  bool get isFarmer => role == 'farmer';
+  bool get isEnterprise => role == 'enterprise';
+  bool get isAdmin => role == 'admin';
+}
+
+
+
+
+
+/*class UserModel {
   final String id;       // simple id
   final String name;
   final String email;
@@ -28,4 +70,4 @@ class UserModel {
         password: json['password'] as String,
         role: json['role'] as String,
       );
-}
+}*/

@@ -25,7 +25,8 @@ class SensorCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  _formatTime(sensorData.timestamp),
+                  _formatTime(
+                      sensorData.timestamp ?? sensorData.timestampMesure),
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
