@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/auth_service.dart';
+import '../../theme/app_theme.dart';
 import 'login_screen.dart';
+import 'enterprise_dashboard_screen.dart';
 
 class EnterpriseRegisterScreen extends StatefulWidget {
   const EnterpriseRegisterScreen({super.key});
@@ -59,7 +61,9 @@ class _EnterpriseRegisterScreenState extends State<EnterpriseRegisterScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => LoginScreen(role: "admin")),
+      MaterialPageRoute(
+        builder: (_) => const EnterpriseDashboardScreen(),
+      ),
     );
   }
 
@@ -73,47 +77,48 @@ class _EnterpriseRegisterScreenState extends State<EnterpriseRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF101018),
-      appBar: AppBar(
-        title: const Text('Créer un compte Admin'),
-        centerTitle: true,
-        backgroundColor: Colors.green.shade700,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const SizedBox(height: 30),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nom complet',
-                prefixIcon: Icon(Icons.person),
+    return Theme(
+      data: AppTheme.enterpriseTheme,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Créer un compte Admin'),
+          centerTitle: true,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom complet',
+                  prefixIcon: Icon(Icons.person),
+                ),
               ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+              const SizedBox(height: 15),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                ),
               ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Mot de passe',
-                prefixIcon: Icon(Icons.lock),
+              const SizedBox(height: 15),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Mot de passe',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
               ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 25),
-            _loading
-                ? const CircularProgressIndicator(color: Colors.green)
-                : CustomButton(text: 'S’inscrire', onTap: _register),
-          ],
+              const SizedBox(height: 25),
+              _loading
+                  ? const CircularProgressIndicator()
+                  : CustomButton(text: 'S’inscrire', onTap: _register),
+            ],
+          ),
         ),
       ),
     );
