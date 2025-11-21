@@ -4,6 +4,7 @@ import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import 'enterprise_dashboard_screen.dart';
 import 'enterprise_add_farmer_screen.dart';
+import 'enterprise_form_screen.dart';
 import 'register_screen.dart'; // 👈 ajouté pour l’inscription
 
 class LoginScreen extends StatefulWidget {
@@ -52,19 +53,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final user = result['user'];
 
-    // Vérifie si l'utilisateur correspond au rôle
+    // Vérifie si l'utilisateur correspond au rôle admin
     if (widget.role == "admin" && user.role != "admin") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Seul un admin peut se connecter ici"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    } else if (widget.role == "superviseur" && user.role != "superviseur") {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Seul un superviseur peut se connecter ici"),
           backgroundColor: Colors.red,
         ),
       );
@@ -89,9 +82,10 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const EnterpriseDashboardScreen()),
       );
     } else {
+      // Superviseur : aller directement au formulaire de parcelle
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const EnterpriseAddFarmerScreen()),
+        MaterialPageRoute(builder: (_) => const EnterpriseFormScreen()),
       );
     }
   }

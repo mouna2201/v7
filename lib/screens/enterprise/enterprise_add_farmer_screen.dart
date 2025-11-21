@@ -25,7 +25,7 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       name: _name.text,
       email: _email.text,
       password: _password.text,
-      role: 'enterprise_farmer', // rôle fermier entreprise
+      role: 'farmer', // création d'un compte fermier
     );
     setState(() => _loading = false);
 
@@ -57,7 +57,7 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
           id: '',
           email: _email.text,
           name: _name.text,
-          role: 'enterprise_farmer',
+          role: 'farmer',
         ),
       );
     }
