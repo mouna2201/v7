@@ -5,7 +5,11 @@ class CustomButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool outlined;
 
-  const CustomButton({super.key, required this.text, required this.onTap, this.outlined = false});
+  const CustomButton(
+      {super.key,
+      required this.text,
+      required this.onTap,
+      this.outlined = false});
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +19,9 @@ class CustomButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
+        // Laisser le parent gérer la largeur ; on impose seulement une hauteur minimale
         height: 46,
-        width: double.infinity,
+        constraints: const BoxConstraints(minHeight: 46),
         decoration: BoxDecoration(
           color: outlined ? Colors.transparent : primary,
           border: outlined ? Border.all(color: primary, width: 2) : null,

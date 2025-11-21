@@ -34,6 +34,13 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   bool _showWeeklyWeather = false;
   late AppLocalizations _l10n;
 
+  // Thème local pour cette page (toggle sombre / clair)
+  ThemeData _currentTheme = AppTheme.lightTheme;
+  bool _isDarkTheme = false;
+  bool _isIrrigationPlanActive = false;
+  DateTime? _irrigationStartDate;
+  int _recommendedInterval = 2; // Intervalle recommandé par l'API
+
   @override
   void initState() {
     super.initState();
@@ -105,28 +112,39 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   Widget build(BuildContext context) {
     // Générer une seule fois la météo pour tout l'écran, commune à toutes les cultures
     final weatherData = _generateWeatherData();
+    final theme = _currentTheme;
+    final colorScheme = theme.colorScheme;
 
     return Theme(
-      data: AppTheme.irrigationTheme,
+      data: theme,
       child: Scaffold(
-        // Blanc cassé avec une très légère touche de vert
-        backgroundColor: const Color(0xFFF5FFF7),
+        backgroundColor: _isDarkTheme ? Colors.black : const Color(0xFFF5F5F5),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF2E7D32),
+          backgroundColor:
+              _isDarkTheme ? const Color(0xFF1A1A1A) : const Color(0xFF4CAF50),
+          foregroundColor: Colors.white,
           centerTitle: true,
           title: Text(
             "${_l10n.irrigationPlan} - ${widget.location}",
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.white,
+            ),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.palette, color: Colors.white),
+              icon: Icon(
+                _isDarkTheme ? Icons.light_mode : Icons.dark_mode,
+                color: Colors.white,
+              ),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Changement de thème bientôt disponible"),
-                  ),
-                );
+                setState(() {
+                  _isDarkTheme = !_isDarkTheme;
+                  _currentTheme = _isDarkTheme
+                      ? AppTheme.irrigationTheme
+                      : AppTheme.lightTheme;
+                });
               },
             ),
             const SizedBox(width: 8),
@@ -134,23 +152,29 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
         ),
         body: Column(
           children: [
-            // 🌤️ BANDE MÉTEO TRÈS VISIBLE
+            // 🌤️ BANDE MÉTEO
             Container(
               width: double.infinity,
               margin: const EdgeInsets.all(8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFE0E0E0),
+                color: _isDarkTheme
+                    ? const Color(0xFF1A1A1A)
+                    : const Color(0xFFE8F5E8),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.shade400,
+                  color: _isDarkTheme
+                      ? Colors.grey.withOpacity(0.3)
+                      : const Color(0xFF4CAF50).withOpacity(0.3),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
+                    color: _isDarkTheme
+                        ? Colors.black.withOpacity(0.5)
+                        : Colors.black.withOpacity(0.1),
                     blurRadius: 8,
-                    offset: const Offset(0, 3),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -189,7 +213,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                         Text(
                           '🔄 Chargement météo pour ${widget.location}...',
                           style: const TextStyle(
-                            color: Color.fromARGB(221, 196, 232, 168),
+                            color: Colors.black87,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -229,18 +253,27 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
+                        color: _isDarkTheme
+                            ? const Color(0xFF2A2A2A)
+                            : const Color(0xFFE8F5E8),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green, width: 1),
+                        border: Border.all(
+                          color: _isDarkTheme
+                              ? Colors.grey.shade600
+                              : const Color(0xFF4CAF50),
+                          width: 1,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.check_circle,
-                                color: Colors.green,
+                                color: _isDarkTheme
+                                    ? Colors.grey.shade300
+                                    : const Color(0xFF2E7D32),
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
@@ -249,8 +282,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                   '✅ ${_currentWeather!.cityName}: '
                                   '${_currentWeather!.temperature.round()}°C - '
                                   '${_currentWeather!.description}',
-                                  style: const TextStyle(
-                                    color: Colors.black87,
+                                  style: TextStyle(
+                                    color: _isDarkTheme
+                                        ? Colors.white
+                                        : const Color(0xFF2E7D32),
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -263,10 +298,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Prévision sur 1 semaine',
                                   style: TextStyle(
-                                    color: Colors.black87,
+                                    color: _isDarkTheme
+                                        ? Colors.white70
+                                        : const Color(0xFF2E7D32),
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -284,11 +321,11 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    _showWeeklyWeather
-                                        ? 'Masquer'
-                                        : 'Voir la semaine',
-                                    style: const TextStyle(
-                                      color: Colors.blueAccent,
+                                    'Voir la semaine',
+                                    style: TextStyle(
+                                      color: _isDarkTheme
+                                          ? Colors.white
+                                          : const Color(0xFF4CAF50),
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -305,31 +342,38 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                   final String minTemp = day['min'] as String;
 
                                   return Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 3),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 3,
+                                    ),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           _getDayName(day['day'] as String),
-                                          style: const TextStyle(
-                                            color: Colors.black87,
+                                          style: TextStyle(
+                                            color: _isDarkTheme
+                                                ? Colors.white54
+                                                : Colors.black,
                                             fontSize: 12,
                                           ),
                                         ),
                                         Row(
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               Icons.thermostat,
-                                              color: Colors.orangeAccent,
+                                              color: _isDarkTheme
+                                                  ? Colors.white
+                                                  : const Color(0xFF4CAF50),
                                               size: 16,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
                                               '$temp / $minTemp',
-                                              style: const TextStyle(
-                                                color: Colors.black54,
+                                              style: TextStyle(
+                                                color: _isDarkTheme
+                                                    ? Colors.white
+                                                    : Colors.black,
                                                 fontSize: 12,
                                               ),
                                             ),
@@ -337,16 +381,20 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                         ),
                                         Row(
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               Icons.water_drop,
-                                              color: Colors.blueAccent,
+                                              color: _isDarkTheme
+                                                  ? Colors.white
+                                                  : const Color(0xFF4CAF50),
                                               size: 16,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
                                               '$rainValue%',
-                                              style: const TextStyle(
-                                                color: Colors.blueAccent,
+                                              style: TextStyle(
+                                                color: _isDarkTheme
+                                                    ? Colors.white
+                                                    : const Color(0xFF4CAF50),
                                                 fontSize: 12,
                                               ),
                                             ),
@@ -367,8 +415,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                       (totalRain / weatherData.length).round();
                                   return Text(
                                     'Humidité moyenne de la semaine : $avgRain%',
-                                    style: const TextStyle(
-                                      color: Colors.black87,
+                                    style: TextStyle(
+                                      color: _isDarkTheme
+                                          ? Colors.white
+                                          : Colors.black,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -416,36 +466,35 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   }
 
   Widget _buildCropCard(String crop, List<Map<String, dynamic>> weatherData) {
-    final double soilHumidity = _latestSensorData?.soilMoisture ?? 0;
-    final int soilHumidityInt = soilHumidity.round();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    int soilHumidity = _latestSensorData?.soilMoisture?.toInt() ?? 0;
 
     print(
       'BuildCropCard - LatestSensorData: ${_latestSensorData != null ? "Topic: ${_latestSensorData!.topic}, Soil: ${_latestSensorData!.soilMoisture}" : "null"}',
     );
-    print('BuildCropCard - soilHumidity utilisé (double): $soilHumidity');
+    print('BuildCropCard - soilHumidity utilisé: $soilHumidity');
 
     String recommendation = _getRecommendation(
       widget.soilType.toLowerCase(),
       crop.toLowerCase(),
       weatherData,
-      soilHumidityInt,
+      soilHumidity,
     );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 25),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFDDDDDD), Color(0xFFEFEFEF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: _isDarkTheme ? const Color(0xFF2A2A2A) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black38,
-            blurRadius: 8,
-            offset: Offset(0, 3),
+            color: _isDarkTheme
+                ? Colors.black.withOpacity(0.5)
+                : Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -458,12 +507,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.15),
+                  color: _isDarkTheme
+                      ? Colors.grey.shade800
+                      : const Color(0xFF4CAF50).withOpacity(0.08),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   _getCropIcon(crop),
-                  color: Colors.lightGreenAccent,
+                  color: const Color(0xFF4CAF50),
                   size: 22,
                 ),
               ),
@@ -474,8 +525,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                   children: [
                     Text(
                       _getCropTranslation(crop),
-                      style: const TextStyle(
-                        color: Colors.black87,
+                      style: TextStyle(
+                        color: _isDarkTheme
+                            ? Colors.white
+                            : const Color(0xFF2E7D32),
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -483,8 +536,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     const SizedBox(height: 2),
                     Text(
                       "${_l10n.soil} : ${_getSoilTypeTranslation(widget.soilType)}",
-                      style: const TextStyle(
-                        color: Colors.black54,
+                      style: TextStyle(
+                        color: _isDarkTheme
+                            ? Colors.white70
+                            : const Color(0xFF2E7D32).withOpacity(0.7),
                         fontSize: 12,
                       ),
                     ),
@@ -497,7 +552,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           Container(
             width: double.infinity,
             height: 1,
-            color: Colors.grey.withValues(alpha: 0.3),
+            color: _isDarkTheme
+                ? Colors.grey.shade700
+                : Colors.grey.withOpacity(0.3),
           ),
           const SizedBox(height: 14),
           _buildWateringCalendar(weatherData, crop),
@@ -506,10 +563,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0E0E0),
+              color: colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.shade400,
+                color: colorScheme.secondary.withOpacity(0.5),
                 width: 1,
               ),
             ),
@@ -523,15 +580,18 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0E0E0),
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade400, width: 1),
+              border: Border.all(
+                color: colorScheme.secondary.withOpacity(0.5),
+                width: 1,
+              ),
             ),
             child: Text(
               "${_l10n.aiAdviceFor} ${_getCropTranslation(crop)} :\n$recommendation",
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.black87,
+              style: TextStyle(
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -542,44 +602,50 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     );
   }
 
-  Widget _buildSoilHumidityWidget(double humidity) {
-    final int humidityRounded = humidity.round();
+  Widget _buildSoilHumidityWidget(int humidity) {
     String status;
 
-    if (humidityRounded < 30) {
+    if (humidity < 30) {
       status = _l10n.drySoil;
-    } else if (humidityRounded < 60) {
+    } else if (humidity < 60) {
       status = _l10n.mediumHumidity;
     } else {
       status = _l10n.humidSoil;
     }
 
-    final Color primary = Colors.blueAccent;
+    final Color primary = Theme.of(context).colorScheme.primary;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFDDDDDD), Color(0xFFEFEFEF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: primary.withOpacity(0.25),
+          color: primary.withOpacity(0.4),
           width: 1.2,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(
+            width: double.infinity,
+            height: 80,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                'assets/images/humidity.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.15),
+                  color: primary.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -594,8 +660,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 children: [
                   Text(
                     _l10n.soilMoisture,
-                    style: const TextStyle(
-                      color: Colors.black87,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -614,27 +680,37 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: LinearProgressIndicator(
-                  value: (humidityRounded.clamp(0, 100)) / 100,
-                  color: primary,
-                  backgroundColor: Colors.grey.shade300,
-                  minHeight: 14,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                "${humidity.toStringAsFixed(1).replaceAll('.', ',')}%",
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: (humidity.clamp(0, 100)) / 100),
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: LinearProgressIndicator(
+                      value: value,
+                      color: primary,
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .surfaceVariant
+                          .withOpacity(0.4),
+                      minHeight: 14,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    "$humidity%",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -645,78 +721,405 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     List<Map<String, dynamic>> weatherData,
     String crop,
   ) {
-    int wateringInterval = 2;
+    // Calculer l'intervalle recommandé selon la culture
+    int _recommendedInterval;
 
     if (crop.toLowerCase().contains("olive")) {
-      wateringInterval = 7;
+      _recommendedInterval = 7;
     } else if (crop.toLowerCase().contains("blé")) {
-      wateringInterval = 1;
+      _recommendedInterval = 1;
     } else if (crop.toLowerCase().contains("tomate")) {
-      wateringInterval = 2;
+      _recommendedInterval = 2;
     } else if (crop.toLowerCase().contains("fraise")) {
-      wateringInterval = 1;
+      _recommendedInterval = 1;
     } else if (crop.toLowerCase().contains("maïs")) {
-      wateringInterval = 3;
+      _recommendedInterval = 3;
+    } else {
+      _recommendedInterval = 2;
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _l10n.wateringCalendar,
-          style: const TextStyle(
-            color: Colors.black87,
+          "Plan d'arrosage",
+          style: TextStyle(
+            color: _isDarkTheme ? Colors.white : const Color(0xFF2E7D32),
             fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
         ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: weatherData.asMap().entries.map((entry) {
-            final index = entry.key;
-            final day = entry.value;
-            final int rainValue = day["rain"] as int;
-            bool isRain = rainValue > 40;
+        const SizedBox(height: 12),
 
-            bool shouldWater = false;
-            if (!isRain) {
-              if (wateringInterval == 1) {
-                shouldWater = true;
-              } else if (index % wateringInterval == 0) {
-                shouldWater = true;
-              }
-            }
-
-            return Column(
-              children: [
-                Text(
-                  _getDayShortName((day["day"] as String)),
-                  style: const TextStyle(color: Colors.black54, fontSize: 12),
+        // RECOMMANDATIONS API
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color:
+                _isDarkTheme ? const Color(0xFF2A2A2A) : const Color(0xFFE3F2FD),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _isDarkTheme
+                  ? Colors.blue.withOpacity(0.3)
+                  : Colors.blue.withOpacity(0.5),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    color: _isDarkTheme
+                        ? Colors.blue.shade300
+                        : Colors.blue.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Recommandation IA",
+                    style: TextStyle(
+                      color: _isDarkTheme
+                          ? Colors.blue.shade300
+                          : Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Pour ${_getCropTranslation(crop)}, il est recommandé d'arroser tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}.",
+                style: TextStyle(
+                  color: _isDarkTheme ? Colors.white70 : Colors.black87,
+                  fontSize: 13,
                 ),
-                const SizedBox(height: 4),
-                Icon(
-                  shouldWater ? Icons.water_drop : Icons.cloud,
-                  color: shouldWater ? Colors.cyanAccent : Colors.blueAccent,
-                  size: 22,
-                ),
-                const SizedBox(height: 2),
+              ),
+              if (_currentWeather != null) ...[
+                const SizedBox(height: 6),
                 Text(
-                  shouldWater ? _l10n.waterToday : _l10n.rest,
+                  "Conditions actuelles: ${_currentWeather!.temperature.round()}°C, ${_currentWeather!.description}",
                   style: TextStyle(
-                    color: shouldWater ? Colors.cyanAccent : Colors.black38,
-                    fontSize: 11,
+                    color: _isDarkTheme ? Colors.white54 : Colors.black54,
+                    fontSize: 12,
                   ),
                 ),
               ],
-            );
-          }).toList(),
+            ],
+          ),
         ),
+
+        const SizedBox(height: 16),
+
+        // CONTRÔLES UTILISATEUR
+        if (!_isIrrigationPlanActive)
+          // Plan pas encore démarré
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _isDarkTheme ? const Color(0xFF1A1A1A) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _isDarkTheme
+                    ? Colors.green.withOpacity(0.3)
+                    : const Color(0xFF4CAF50).withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.play_circle_outline,
+                  color: _isDarkTheme
+                      ? Colors.green.shade300
+                      : const Color(0xFF4CAF50),
+                  size: 48,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Prêt à commencer l'arrosage ?",
+                  style: TextStyle(
+                    color: _isDarkTheme ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Vous décidez quand démarrer le plan d'arrosage recommandé.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _isDarkTheme ? Colors.white70 : Colors.black54,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // BOUTON START AMÉLIORÉ
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isIrrigationPlanActive = true;
+                      _irrigationStartDate = DateTime.now();
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "✅ Plan d'arrosage démarré ! Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}.",
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF43A047),
+                          Color(0xFF66BB6A),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.35),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.9, end: 1.05),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeInOut,
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: child,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.15),
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Démarrer le plan d'arrosage",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              "Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}",
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          // Plan actif - Afficher le calendrier
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _isDarkTheme ? const Color(0xFF1A1A1A) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _isDarkTheme
+                    ? Colors.green.withOpacity(0.3)
+                    : const Color(0xFF4CAF50).withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: _isDarkTheme
+                              ? Colors.green.shade300
+                              : const Color(0xFF4CAF50),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Plan actif",
+                          style: TextStyle(
+                            color: _isDarkTheme
+                                ? Colors.green.shade300
+                                : const Color(0xFF4CAF50),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _isIrrigationPlanActive = false;
+                          _irrigationStartDate = null;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("⏹️ Plan d'arrosage arrêté"),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        Icons.stop,
+                        color: _isDarkTheme
+                            ? Colors.orange.shade300
+                            : Colors.orange.shade700,
+                        size: 16,
+                      ),
+                      label: Text(
+                        "Arrêter",
+                        style: TextStyle(
+                          color: _isDarkTheme
+                              ? Colors.orange.shade300
+                              : Colors.orange.shade700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (_irrigationStartDate != null) ...[
+                  Text(
+                    "Démarré le: ${_irrigationStartDate!.day}/${_irrigationStartDate!.month}/${_irrigationStartDate!.year}",
+                    style: TextStyle(
+                      color: _isDarkTheme ? Colors.white70 : Colors.black54,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
+                // Calendrier des 7 prochains jours
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: weatherData.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final day = entry.value;
+                    final int rainValue = day["rain"] as int;
+                    bool isRain = rainValue > 40;
+
+                    bool shouldWater = false;
+                    if (!isRain) {
+                      if (_recommendedInterval == 1) {
+                        shouldWater = true;
+                      } else if (index % _recommendedInterval == 0) {
+                        shouldWater = true;
+                      }
+                    }
+
+                    return TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: Duration(milliseconds: 350 + index * 80),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 12 * (1 - value)),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Text(
+                            _getDayShortName((day["day"] as String)),
+                            style: TextStyle(
+                              color: _isDarkTheme
+                                  ? Colors.white54
+                                  : const Color(0xFF757575),
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Icon(
+                            shouldWater ? Icons.water_drop : Icons.cloud,
+                            color: shouldWater
+                                ? (_isDarkTheme
+                                    ? Colors.white
+                                    : const Color(0xFF4CAF50))
+                                : (_isDarkTheme
+                                    ? Colors.white70
+                                    : const Color(0xFF2196F3)),
+                            size: 22,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            shouldWater ? _l10n.waterToday : _l10n.rest,
+                            style: TextStyle(
+                              color: shouldWater
+                                  ? (_isDarkTheme
+                                      ? Colors.white
+                                      : const Color(0xFF4CAF50))
+                                  : (_isDarkTheme
+                                      ? Colors.white54
+                                      : const Color(0xFF757575)),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
 
-  // 🌤️ Générer les données météo à partir de l'API réelle
-  // Si l'API ne répond pas, on retourne une liste vide (pas de météo fictive)
+  // Génère des données météo hebdomadaires à partir de la météo actuelle
   List<Map<String, dynamic>> _generateWeatherData() {
     if (_currentWeather == null) {
       return [];
@@ -840,17 +1243,15 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     final isUsingMQTTData = _latestSensorData != null;
     final lastUpdate = _latestSensorData?.timestamp;
 
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFF333333), // Darkened container color
+        color: isUsingMQTTData
+            ? cs.primary.withOpacity(0.15)
+            : cs.secondary.withOpacity(0.15),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isUsingMQTTData
-              ? Colors.blueAccent.shade200
-              : Colors.orange.shade300,
-          width: 1,
-        ),
       ),
       child: Row(
         children: [
@@ -896,8 +1297,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     return Text(
       text,
       textAlign: TextAlign.center,
-      style: const TextStyle(
-        color: Colors.black87,
+      style: TextStyle(
+        color: _isDarkTheme ? Colors.white : const Color(0xFF2E7D32),
         fontSize: 13,
         fontWeight: FontWeight.bold,
       ),

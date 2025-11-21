@@ -169,38 +169,59 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
 
             // Section Capteurs
             Expanded(
-              child: sensors.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            sensorState.isConnected
-                                ? Icons.hourglass_empty
-                                : Icons.cloud_off,
-                            size: 64,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            sensorState.isConnected
-                                ? "En attente des données..."
-                                : "Hors ligne",
-                            style: const TextStyle(fontSize: 18),
-                          ),
-                        ],
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                child: sensors.isEmpty
+                    ? Center(
+                        key: const ValueKey('sensors-empty'),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              sensorState.isConnected
+                                  ? Icons.hourglass_empty
+                                  : Icons.cloud_off,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              sensorState.isConnected
+                                  ? "En attente des données..."
+                                  : "Hors ligne",
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        key: const ValueKey('sensors-list'),
+                        padding: const EdgeInsets.all(8),
+                        itemCount: sensors.length,
+                        itemBuilder: (context, index) {
+                          return TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0, end: 1),
+                            duration: Duration(milliseconds: 300 + index * 80),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, child) {
+                              return Opacity(
+                                opacity: value,
+                                child: Transform.translate(
+                                  offset: Offset(0, 14 * (1 - value)),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: SensorCard(
+                              key: ValueKey(sensors[index].deviceId),
+                              sensorData: sensors[index],
+                            ),
+                          );
+                        },
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: sensors.length,
-                      itemBuilder: (context, index) {
-                        return SensorCard(
-                          key: ValueKey(sensors[index].deviceId),
-                          sensorData: sensors[index],
-                        );
-                      },
-                    ),
+              ),
             ),
           ],
         ),
