@@ -6,7 +6,7 @@ import '../../models/sensor_data.dart';
 import '../../models/weather_data.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
-
+import '../../widgets/animated_humidity_circle.dart';
 class IrrigationPlanScreen extends StatefulWidget {
   final String location;
   final String soilType;
@@ -613,104 +613,51 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       status = _l10n.humidSoil;
     }
 
-    final Color primary = Theme.of(context).colorScheme.primary;
+    const Color primary = Colors.orange; // même couleur que ton exemple
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Colors.white, // fond clair
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: primary.withOpacity(0.4),
-          width: 1.2,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: 80,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                'assets/images/humidity.png',
-                fit: BoxFit.cover,
-              ),
+          const Icon(
+            Icons.water_drop,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Current ${_currentWeather?.temperature.round() ?? 0}°C',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: primary.withOpacity(0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.water_drop,
-                  color: primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _l10n.soilMoisture,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    status,
-                    style: TextStyle(
-                      color: primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          AnimatedHumidityCircle(
+            humidity: humidity,
+            color: primary,
           ),
-          const SizedBox(height: 14),
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: (humidity.clamp(0, 100)) / 100),
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, child) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: LinearProgressIndicator(
-                      value: value,
-                      color: primary,
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .surfaceVariant
-                          .withOpacity(0.4),
-                      minHeight: 14,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    "$humidity%",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              );
-            },
+          const SizedBox(height: 12),
+          Text(
+            status,
+            style: const TextStyle(
+              color: primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
