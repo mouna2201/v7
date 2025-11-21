@@ -86,7 +86,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B5E20),
+      backgroundColor: const Color(0xFF48D1CC),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

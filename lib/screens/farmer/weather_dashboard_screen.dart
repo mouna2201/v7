@@ -51,22 +51,45 @@ class _WeatherDashboardScreenState extends ConsumerState<WeatherDashboardScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Météo actuelle
-              if (isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (error.isNotEmpty)
-                _buildErrorCard(error)
-              else if (currentWeather != null)
-                _buildCurrentWeatherCard(currentWeather),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                child: isLoading
+                    ? const Center(
+                        key: ValueKey('weather-loading'),
+                        child: CircularProgressIndicator(),
+                      )
+                    : error.isNotEmpty
+                        ? _buildErrorCard(error)
+                        : currentWeather != null
+                            ? _buildCurrentWeatherCard(currentWeather)
+                            : const SizedBox.shrink(),
+              ),
 
               const SizedBox(height: 24),
 
               // Section météo agricole
-              const Text(
-                'Météo des Zones Agricoles',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, 16 * (1 - value)),
+                      child: child,
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Météo des Zones Agricoles',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -115,108 +138,122 @@ class _WeatherDashboardScreenState extends ConsumerState<WeatherDashboardScreen>
   }
 
   Widget _buildCurrentWeatherCard(WeatherData weather) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade400,
-              Colors.blue.shade600,
-            ],
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.9, end: 1),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.scale(
+            scale: value,
+            child: child,
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      weather.cityName,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      weather.description,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
+        );
+      },
+      child: Card(
+        elevation: 4,
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.blue.shade400,
+                Colors.blue.shade600,
+              ],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${weather.temperature.round()}°C',
+                        weather.cityName,
                         style: const TextStyle(
-                          fontSize: 32,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
                       Text(
-                        'Ressentie ${weather.feelsLike.round()}°C',
+                        weather.description,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           color: Colors.white70,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildWeatherDetail(
-                  Icons.water_drop,
-                  'Humidité',
-                  '${weather.humidity}%',
-                  Colors.white70,
-                ),
-                _buildWeatherDetail(
-                  Icons.air,
-                  'Vent',
-                  '${weather.windSpeed.toStringAsFixed(1)} m/s',
-                  Colors.white70,
-                ),
-                _buildWeatherDetail(
-                  Icons.thermostat,
-                  'Min/Max',
-                  '${weather.tempMin.round()}°/${weather.tempMax.round()}°',
-                  Colors.white70,
-                ),
-                if (weather.hasRecentRain)
-                  _buildWeatherDetail(
-                    Icons.grain,
-                    'Pluie',
-                    '${weather.totalPrecipitation}mm',
-                    Colors.lightBlueAccent,
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '${weather.temperature.round()}°C',
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Ressentie ${weather.feelsLike.round()}°C',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildWeatherDetail(
+                    Icons.water_drop,
+                    'Humidité',
+                    '${weather.humidity}%',
+                    Colors.white70,
+                  ),
+                  _buildWeatherDetail(
+                    Icons.air,
+                    'Vent',
+                    '${weather.windSpeed.toStringAsFixed(1)} m/s',
+                    Colors.white70,
+                  ),
+                  _buildWeatherDetail(
+                    Icons.thermostat,
+                    'Min/Max',
+                    '${weather.tempMin.round()}°/${weather.tempMax.round()}°',
+                    Colors.white70,
+                  ),
+                  if (weather.hasRecentRain)
+                    _buildWeatherDetail(
+                      Icons.grain,
+                      'Pluie',
+                      '${weather.totalPrecipitation}mm',
+                      Colors.lightBlueAccent,
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -260,7 +297,21 @@ class _WeatherDashboardScreenState extends ConsumerState<WeatherDashboardScreen>
       itemCount: weatherList.length,
       itemBuilder: (context, index) {
         final weather = weatherList[index];
-        return _buildAgriculturalWeatherCard(weather);
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: Duration(milliseconds: 350 + index * 80),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: _buildAgriculturalWeatherCard(weather),
+        );
       },
     );
   }
