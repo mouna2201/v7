@@ -3,6 +3,7 @@ import '../../widgets/custom_button.dart';
 import 'enterprise_add_farmer_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../models/user.dart';
+import '../../services/auth_service.dart';
 
 class EnterpriseDashboardScreen extends StatefulWidget {
   const EnterpriseDashboardScreen({super.key});
@@ -13,7 +14,23 @@ class EnterpriseDashboardScreen extends StatefulWidget {
 }
 
 class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
+  final AuthService _authService = AuthService();
   List<User> _farmers = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFarmers();
+  }
+
+  Future<void> _loadFarmers() async {
+    final farmers = await _authService.fetchFarmers();
+    setState(() {
+      _farmers = farmers;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +161,8 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                                 final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const EnterpriseAddFarmerScreen(),
+                                    builder: (_) =>
+                                        const EnterpriseAddFarmerScreen(),
                                   ),
                                 );
 
@@ -165,120 +183,131 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
 
                   // Liste animée
                   Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      child: _farmers.isEmpty
-                          ? Center(
-                              key: const ValueKey('empty-state'),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(
-                                    Icons.agriculture,
-                                    size: 64,
-                                    color: Colors.white30,
-                                  ),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    'Aucun fermier pour le moment',
-                                    style: TextStyle(
-                                      color: Colors.white60,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Ajoutez votre premier fermier avec le bouton ci-dessus.',
-                                    style: TextStyle(
-                                      color: Colors.white38,
-                                      fontSize: 13,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.separated(
-                              key: const ValueKey('farmers-list'),
-                              itemCount: _farmers.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final farmer = _farmers[index];
-                                return TweenAnimationBuilder<double>(
-                                  tween: Tween(begin: 0, end: 1),
-                                  duration: Duration(milliseconds: 300 + index * 60),
-                                  curve: Curves.easeOutCubic,
-                                  builder: (context, value, child) {
-                                    return Opacity(
-                                      opacity: value,
-                                      child: Transform.translate(
-                                        offset: Offset(0, (1 - value) * 12),
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.06),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.08),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          height: 40,
-                                          width: 40,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                Color(0xFF22C55E),
-                                                Color(0xFF16A34A),
-                                              ],
-                                            ),
-                                          ),
-                                          child: const Icon(
-                                            Icons.person,
-                                            color: Colors.white,
-                                            size: 22,
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 400),
+                            switchInCurve: Curves.easeOut,
+                            switchOutCurve: Curves.easeIn,
+                            child: _farmers.isEmpty
+                                ? Center(
+                                    key: const ValueKey('empty-state'),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(
+                                          Icons.agriculture,
+                                          size: 64,
+                                          color: Colors.white30,
+                                        ),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'Aucun fermier pour le moment',
+                                          style: TextStyle(
+                                            color: Colors.white60,
+                                            fontSize: 16,
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                        SizedBox(height: 4),
+                                        Text(
+                                          'Ajoutez votre premier fermier avec le bouton ci-dessus.',
+                                          style: TextStyle(
+                                            color: Colors.white38,
+                                            fontSize: 13,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ListView.separated(
+                                    key: const ValueKey('farmers-list'),
+                                    itemCount: _farmers.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(height: 12),
+                                    itemBuilder: (context, index) {
+                                      final farmer = _farmers[index];
+                                      return TweenAnimationBuilder<double>(
+                                        tween: Tween(begin: 0, end: 1),
+                                        duration: Duration(
+                                            milliseconds: 300 + index * 60),
+                                        curve: Curves.easeOutCubic,
+                                        builder: (context, value, child) {
+                                          return Opacity(
+                                            opacity: value,
+                                            child: Transform.translate(
+                                              offset:
+                                                  Offset(0, (1 - value) * 12),
+                                              child: child,
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(14),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.white.withOpacity(0.06),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            border: Border.all(
+                                              color: Colors.white
+                                                  .withOpacity(0.08),
+                                            ),
+                                          ),
+                                          child: Row(
                                             children: [
-                                              Text(
-                                                farmer.name,
-                                                style: const TextStyle(
+                                              Container(
+                                                height: 40,
+                                                width: 40,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  gradient:
+                                                      const LinearGradient(
+                                                    colors: [
+                                                      Color(0xFF22C55E),
+                                                      Color(0xFF16A34A),
+                                                    ],
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.person,
                                                   color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
+                                                  size: 22,
                                                 ),
                                               ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                farmer.email,
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 13,
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      farmer.name,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      farmer.email,
+                                                      style: const TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
-                    ),
+                          ),
                   ),
                 ],
               ),

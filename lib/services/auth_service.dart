@@ -5,7 +5,8 @@ import '../models/user.dart';
 
 class AuthService {
   // ⚠️ CHANGEZ CETTE URL SELON VOTRE ENVIRONNEMENT
-  static const String baseUrl = 'http://localhost:3000/api'; // Émulateur Android
+  static const String baseUrl =
+      'http://localhost:3000/api'; // Émulateur Android
   // static const String baseUrl = 'http://192.168.1.X:3000/api'; // Téléphone physique
 
   // Stockage simple en mémoire pour le token (remplace flutter_secure_storage côté démo)
@@ -154,6 +155,44 @@ class AuthService {
     } catch (e) {
       print('Erreur refresh token: $e');
       return null;
+    }
+  }
+
+  // 👨‍🌾 RÉCUPÉRER LA LISTE DES FERMIERS
+  Future<List<User>> fetchFarmers() async {
+    try {
+      final token = await getToken();
+
+      final response = await http.get(
+        // ⚠️ Adapter cette route à ton backend réel si nécessaire
+        Uri.parse('$baseUrl/users?role=farmer'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List) {
+          return data
+              .whereType<Map<String, dynamic>>()
+              .map((e) => User.fromJson(e))
+              .toList();
+        }
+        if (data is Map<String, dynamic> && data['users'] is List) {
+          final list = data['users'] as List;
+          return list
+              .whereType<Map<String, dynamic>>()
+              .map((e) => User.fromJson(e))
+              .toList();
+        }
+      }
+
+      return [];
+    } catch (e) {
+      print('Erreur fetchFarmers: $e');
+      return [];
     }
   }
 

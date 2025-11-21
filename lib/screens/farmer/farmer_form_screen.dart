@@ -37,110 +37,201 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
           centerTitle: true,
           actions: [
             IconButton(
-              icon: Icon(Icons.palette, color: AppTheme.farmerTheme.primaryColor),
+              icon:
+                  Icon(Icons.palette, color: AppTheme.farmerTheme.primaryColor),
               onPressed: () {
-                // TODO: Implémenter le changement de thème
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Changement de thème bientôt disponible")),
+                  const SnackBar(
+                    content: Text("Changement de thème bientôt disponible"),
+                  ),
                 );
               },
             ),
             const SizedBox(width: 8),
           ],
         ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8), // Encore plus réduit
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildLabel(_l10n.locationField),
-            const SizedBox(height: 2), // Encore plus réduit
-            _buildTextField(
-              controller: location,
-              label: _l10n.locationHint,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFE8F5E9),
+                Color(0xFFF1FAF2),
+              ],
             ),
-            const SizedBox(height: 8), // Encore plus réduit
-
-            _buildLabel(_l10n.soilType),
-            const SizedBox(height: 2), // Encore plus réduit
-            DropdownButtonFormField(
-              initialValue: soil,
-              dropdownColor: Colors.white,
-              style: const TextStyle(color: Color(0xFF1B5E20), fontSize: 16, fontWeight: FontWeight.w500),
-              items: [
-                "sableux",
-                "argileux", 
-                "calcaire",
-                "limoneux"
-              ]
-                  .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(e,
+          ),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.map_outlined,
+                                  color: Color(0xFF1B5E20)),
+                              const SizedBox(width: 8),
+                              Text(
+                                _l10n.locationField,
+                                style: const TextStyle(
+                                  color: Color(0xFF1B5E20),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          _buildTextField(
+                            controller: location,
+                            label: _l10n.locationHint,
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              const Icon(Icons.grass, color: Color(0xFF1B5E20)),
+                              const SizedBox(width: 8),
+                              Text(
+                                _l10n.soilType,
+                                style: const TextStyle(
+                                  color: Color(0xFF1B5E20),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            value: soil,
+                            dropdownColor: Colors.white,
                             style: const TextStyle(
-                                color: Color(0xFF1B5E20), fontSize: 16, fontWeight: FontWeight.w500)),
-                      ))
-                  .toList(),
-              onChanged: (v) => setState(() => soil = v!),
-              decoration: _inputDecoration(),
-            ),
-            const SizedBox(height: 8), // Encore plus réduit
+                              color: Color(0xFF1B5E20),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            items: [
+                              "sableux",
+                              "argileux",
+                              "calcaire",
+                              "limoneux",
+                            ]
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) => setState(() => soil = v ?? soil),
+                            decoration: _inputDecoration(),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              const Icon(Icons.eco_outlined,
+                                  color: Color(0xFF1B5E20)),
+                              const SizedBox(width: 8),
+                              Text(
+                                _l10n.cropTypes,
+                                style: const TextStyle(
+                                  color: Color(0xFF1B5E20),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          _buildTextField(
+                            controller: crop,
+                            label: _l10n.cropHint,
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              const Icon(Icons.square_foot,
+                                  color: Color(0xFF1B5E20)),
+                              const SizedBox(width: 8),
+                              Text(
+                                _l10n.surfaceAreaHectares,
+                                style: const TextStyle(
+                                  color: Color(0xFF1B5E20),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          _buildTextField(
+                            controller: hectares,
+                            label: _l10n.surfaceHint,
+                            type: TextInputType.number,
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: CustomButton(
+                              text: _l10n.generateAIPlan,
+                              onTap: () {
+                                if (location.text.isEmpty ||
+                                    crop.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(_l10n.fillAllFields),
+                                    ),
+                                  );
+                                  return;
+                                }
 
-            _buildLabel(_l10n.cropTypes),
-            const SizedBox(height: 2), // Encore plus réduit
-            _buildTextField(
-              controller: crop,
-              label: _l10n.cropHint,
-            ),
-            const SizedBox(height: 8), // Encore plus réduit
+                                final cropList = crop.text
+                                    .split(',')
+                                    .map((c) => c.trim())
+                                    .where((c) => c.isNotEmpty)
+                                    .toList();
 
-            _buildLabel(_l10n.surfaceAreaHectares),
-            const SizedBox(height: 2), // Encore plus réduit
-            _buildTextField(
-              controller: hectares,
-              label: _l10n.surfaceHint,
-              type: TextInputType.number,
-            ),
-            const SizedBox(height: 12), // Encore plus réduit
-
-            Align(
-              alignment: Alignment.center,
-              child: SizedBox(
-                width: 220,
-                child: CustomButton(
-                  text: _l10n.generateAIPlan,
-                  onTap: () {
-                if (location.text.isEmpty || crop.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(_l10n.fillAllFields),
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => IrrigationPlanScreen(
+                                      location: location.text,
+                                      soilType: soil,
+                                      cropTypes: cropList,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                  return;
-                }
-
-                final cropList = crop.text
-                    .split(',')
-                    .map((c) => c.trim())
-                    .where((c) => c.isNotEmpty)
-                    .toList();
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => IrrigationPlanScreen(
-                      location: location.text,
-                      soilType: soil,
-                      cropTypes: cropList,
-                    ),
-                  ),
-                );
-              },
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -167,7 +258,10 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
     return TextField(
       controller: controller,
       keyboardType: type,
-      style: const TextStyle(color: Color(0xFF1B5E20), fontSize: 12, fontWeight: FontWeight.w500), // Encore plus réduit
+      style: const TextStyle(
+          color: Color(0xFF1B5E20),
+          fontSize: 12,
+          fontWeight: FontWeight.w500), // Encore plus réduit
       decoration: _inputDecoration(hint: label),
     );
   }
@@ -176,10 +270,12 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
   InputDecoration _inputDecoration({String? hint}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF66BB6A), fontSize: 12), // Réduit
+      hintStyle:
+          const TextStyle(color: Color(0xFF66BB6A), fontSize: 12), // Réduit
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), // Encore plus réduit
+      contentPadding: const EdgeInsets.symmetric(
+          horizontal: 8, vertical: 8), // Encore plus réduit
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(6), // Encore plus réduit
         borderSide: const BorderSide(color: Colors.grey, width: 1),
