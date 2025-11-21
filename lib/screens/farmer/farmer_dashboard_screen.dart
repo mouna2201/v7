@@ -10,7 +10,8 @@ class FarmerDashboardScreen extends ConsumerStatefulWidget {
   const FarmerDashboardScreen({super.key});
 
   @override
-  ConsumerState<FarmerDashboardScreen> createState() => _FarmerDashboardScreenState();
+  ConsumerState<FarmerDashboardScreen> createState() =>
+      _FarmerDashboardScreenState();
 }
 
 class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
@@ -31,169 +32,178 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
     return Theme(
       data: AppTheme.farmerTheme,
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text("Tableau de bord"),
           actions: [
             Icon(
               sensorState.isConnected ? Icons.cloud_done : Icons.cloud_off,
-              color: sensorState.isConnected ? const Color(0xFF6FA86F) : Colors.red,
+              color: sensorState.isConnected
+                  ? const Color(0xFF6FA86F)
+                  : Colors.red,
             ),
             const SizedBox(width: 16),
           ],
         ),
-      body: Column(
-        children: [
-          // Section Météo
-          Container(
-            height: 200,
-            margin: const EdgeInsets.all(8),
-            child: Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Météo',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+        body: Column(
+          children: [
+            // Section Météo
+            Container(
+              height: 200,
+              margin: const EdgeInsets.all(8),
+              child: Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Météo',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const WeatherDashboardScreen(),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const WeatherDashboardScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text('Voir tout'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            final weatherNotifier = ref.watch(weatherProvider);
+                            final currentWeather =
+                                weatherNotifier.currentWeather;
+                            final isLoading = weatherNotifier.isLoading;
+
+                            if (isLoading) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+
+                            if (currentWeather != null) {
+                              return Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        currentWeather.cityName,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        currentWeather.description,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '${currentWeather.temperature.round()}°C',
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _buildWeatherInfo(
+                                        Icons.water_drop,
+                                        '${currentWeather.humidity}%',
+                                      ),
+                                      _buildWeatherInfo(
+                                        Icons.air,
+                                        '${currentWeather.windSpeed.toStringAsFixed(1)} m/s',
+                                      ),
+                                      if (currentWeather.hasRecentRain)
+                                        _buildWeatherInfo(
+                                          Icons.grain,
+                                          '${currentWeather.totalPrecipitation}mm',
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            }
+
+                            return const Center(
+                              child: Text(
+                                'Météo non disponible',
+                                style: TextStyle(color: Colors.grey),
                               ),
                             );
                           },
-                          child: const Text('Voir tout'),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: Consumer(
-                        builder: (context, ref, child) {
-                          final weatherNotifier = ref.watch(weatherProvider);
-                          final currentWeather = weatherNotifier.currentWeather;
-                          final isLoading = weatherNotifier.isLoading;
-
-                          if (isLoading) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-
-                          if (currentWeather != null) {
-                            return Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      currentWeather.cityName,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      currentWeather.description,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      '${currentWeather.temperature.round()}°C',
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Spacer(),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _buildWeatherInfo(
-                                      Icons.water_drop,
-                                      '${currentWeather.humidity}%',
-                                    ),
-                                    _buildWeatherInfo(
-                                      Icons.air,
-                                      '${currentWeather.windSpeed.toStringAsFixed(1)} m/s',
-                                    ),
-                                    if (currentWeather.hasRecentRain)
-                                      _buildWeatherInfo(
-                                        Icons.grain,
-                                        '${currentWeather.totalPrecipitation}mm',
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            );
-                          }
-
-                          return const Center(
-                            child: Text(
-                              'Météo non disponible',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          );
-                        },
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          
-          // Section Capteurs
-          Expanded(
-            child: sensors.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          sensorState.isConnected ? Icons.hourglass_empty : Icons.cloud_off,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          sensorState.isConnected
-                              ? "En attente des données..."
-                              : "Hors ligne",
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                      ],
+
+            // Section Capteurs
+            Expanded(
+              child: sensors.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            sensorState.isConnected
+                                ? Icons.hourglass_empty
+                                : Icons.cloud_off,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            sensorState.isConnected
+                                ? "En attente des données..."
+                                : "Hors ligne",
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: sensors.length,
+                      itemBuilder: (context, index) {
+                        return SensorCard(
+                          key: ValueKey(sensors[index].deviceId),
+                          sensorData: sensors[index],
+                        );
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: sensors.length,
-                    itemBuilder: (context, index) {
-                      return SensorCard(
-                        key: ValueKey(sensors[index].deviceId),
-                        sensorData: sensors[index],
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
       ),
     );
   }

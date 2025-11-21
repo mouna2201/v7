@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
+import '../../models/user.dart';
 
 class EnterpriseAddFarmerScreen extends StatefulWidget {
   const EnterpriseAddFarmerScreen({super.key});
@@ -42,7 +43,24 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       const SnackBar(
           content: Text('Fermier ajouté !'), backgroundColor: Colors.green),
     );
-    Navigator.pop(context);
+    final dynamic apiUser = result['user'];
+
+    // On s'assure de toujours renvoyer un objet User au tableau de bord
+    if (apiUser is User) {
+      Navigator.pop(context, apiUser);
+    } else if (apiUser is Map<String, dynamic>) {
+      Navigator.pop(context, User.fromJson(apiUser));
+    } else {
+      Navigator.pop(
+        context,
+        User(
+          id: '',
+          email: _email.text,
+          name: _name.text,
+          role: 'enterprise_farmer',
+        ),
+      );
+    }
   }
 
   @override

@@ -36,8 +36,11 @@ class SensorCard extends StatelessWidget {
               _buildDataRow('🌡️ Température', '${sensorData.temperature}°C'),
             if (sensorData.humidity != null)
               _buildDataRow('💧 Humidité Air', '${sensorData.humidity}%'),
-            if (sensorData.soilMoisture != null)
-              _buildDataRow('🌱 Humidité Sol', '${sensorData.soilMoisture}%'),
+            if (sensorData.soilMoisture != null) {
+              final String soilStr =
+                  sensorData.soilMoisture!.toStringAsFixed(1).replaceAll('.', ',');
+              _buildDataRow('🌱 Humidité Sol', '$soilStr%');
+            }
             if (sensorData.battery != null)
               _buildDataRow('🔋 Batterie', '${sensorData.battery}%'),
           ],

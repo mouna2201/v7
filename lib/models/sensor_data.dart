@@ -82,9 +82,24 @@ class SensorData {
     final now = DateTime.now();
 
     try {
-      final data = json.decode(message);
-      final ts = DateTime.parse(
-          data['timestamp']?.toString() ?? now.toIso8601String());
+      // Premier décodage du message MQTT
+      dynamic decoded = json.decode(message);
+
+      // Certains brokers envoient le JSON comme chaîne encodée : "{...}"
+      if (decoded is String) {
+        decoded = json.decode(decoded);
+      }
+
+      if (decoded is! Map<String, dynamic>) {
+        // Format inattendu, on retombe sur le parseur simple
+        return _parseSimpleMessage(topic, message, now);
+      }
+
+      final Map<String, dynamic> data = decoded;
+
+      final tsString =
+          data['timestamp_mesure']?.toString() ?? data['timestamp']?.toString();
+      final ts = tsString != null ? (DateTime.tryParse(tsString) ?? now) : now;
 
       final airHum = (data['humidity'] ?? data['humidite'])?.toDouble();
       final soilHum =

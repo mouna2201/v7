@@ -13,7 +13,8 @@ class EnterpriseDashboardScreen extends StatefulWidget {
 }
 
 class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
-  List<User> _farmers = [];
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  final List<User> _farmers = [];
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +40,10 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                   );
 
                   if (result is User) {
-                    setState(() {
-                      _farmers.add(result);
-                    });
+                    final index = _farmers.length;
+                    _farmers.add(result);
+                    _listKey.currentState?.insertItem(index,
+                        duration: const Duration(milliseconds: 400));
                   }
                 },
               ),
@@ -51,14 +53,185 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                     ? const Center(
                         child: Text('Aucun fermier pour le moment'),
                       )
-                    : ListView.builder(
-                        itemCount: _farmers.length,
-                        itemBuilder: (context, index) {
+                    : AnimatedList(
+                        key: _listKey,
+                        initialItemCount: _farmers.length,
+                        itemBuilder: (context, index, animation) {
                           final farmer = _farmers[index];
-                          return ListTile(
-                            leading: const Icon(Icons.person),
-                            title: Text(farmer.name),
-                            subtitle: Text(farmer.email),
+
+                          return SizeTransition(
+                            sizeFactor: CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeOutCubic,
+                            ),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 6.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(18),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.06),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withOpacity(0.7),
+                                            ],
+                                          ),
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(18),
+                                            topRight: Radius.circular(18),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.agriculture,
+                                                  color: Colors.white,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  farmer.name,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleMedium
+                                                      ?.copyWith(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white
+                                                    .withOpacity(0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.verified_user,
+                                                    size: 16,
+                                                    color: Colors.white,
+                                                  ),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'Fermier',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 12),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 22,
+                                              backgroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withOpacity(0.08),
+                                              child: Icon(
+                                                Icons.person,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    farmer.email,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Row(
+                                                    children: [
+                                                      Container(
+                                                        width: 8,
+                                                        height: 8,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Colors.green,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Text(
+                                                        'Actif',
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                              color:
+                                                                  Colors.green,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           );
                         },
                       ),

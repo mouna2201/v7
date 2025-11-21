@@ -109,7 +109,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     return Theme(
       data: AppTheme.irrigationTheme,
       child: Scaffold(
+        // Blanc cassé avec une très légère touche de vert
+        backgroundColor: const Color(0xFFF5FFF7),
         appBar: AppBar(
+          backgroundColor: const Color(0xFF2E7D32),
           centerTitle: true,
           title: Text(
             "${_l10n.irrigationPlan} - ${widget.location}",
@@ -137,17 +140,17 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               margin: const EdgeInsets.all(8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 26, 26, 26),
+                color: const Color(0xFFE0E0E0),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color.fromARGB(255, 117, 118, 119),
+                  color: Colors.grey.shade400,
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withValues(alpha: 0.2),
+                    color: Colors.black.withValues(alpha: 0.12),
                     blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
@@ -186,7 +189,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                         Text(
                           '🔄 Chargement météo pour ${widget.location}...',
                           style: const TextStyle(
-                            color: Colors.black87,
+                            color: Color.fromARGB(221, 196, 232, 168),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -247,7 +250,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                   '${_currentWeather!.temperature.round()}°C - '
                                   '${_currentWeather!.description}',
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.black87,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -263,7 +266,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                 const Text(
                                   'Prévision sur 1 semaine',
                                   style: TextStyle(
-                                    color: Colors.white70,
+                                    color: Colors.black87,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -311,7 +314,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                         Text(
                                           _getDayName(day['day'] as String),
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: Colors.black87,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -326,7 +329,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                             Text(
                                               '$temp / $minTemp',
                                               style: const TextStyle(
-                                                color: Colors.white70,
+                                                color: Colors.black54,
                                                 fontSize: 12,
                                               ),
                                             ),
@@ -365,7 +368,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                   return Text(
                                     'Humidité moyenne de la semaine : $avgRain%',
                                     style: const TextStyle(
-                                      color: Colors.white70,
+                                      color: Colors.black87,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -413,18 +416,19 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   }
 
   Widget _buildCropCard(String crop, List<Map<String, dynamic>> weatherData) {
-    int soilHumidity = _latestSensorData?.soilMoisture?.toInt() ?? 0;
+    final double soilHumidity = _latestSensorData?.soilMoisture ?? 0;
+    final int soilHumidityInt = soilHumidity.round();
 
     print(
       'BuildCropCard - LatestSensorData: ${_latestSensorData != null ? "Topic: ${_latestSensorData!.topic}, Soil: ${_latestSensorData!.soilMoisture}" : "null"}',
     );
-    print('BuildCropCard - soilHumidity utilisé: $soilHumidity');
+    print('BuildCropCard - soilHumidity utilisé (double): $soilHumidity');
 
     String recommendation = _getRecommendation(
       widget.soilType.toLowerCase(),
       crop.toLowerCase(),
       weatherData,
-      soilHumidity,
+      soilHumidityInt,
     );
 
     return Container(
@@ -432,16 +436,16 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E272E), Color(0xFF2F3640)],
+          colors: [Color(0xFFDDDDDD), Color(0xFFEFEFEF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
-            color: Colors.black54,
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Colors.black38,
+            blurRadius: 8,
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -471,7 +475,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     Text(
                       _getCropTranslation(crop),
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black87,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -480,7 +484,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     Text(
                       "${_l10n.soil} : ${_getSoilTypeTranslation(widget.soilType)}",
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: Colors.black54,
                         fontSize: 12,
                       ),
                     ),
@@ -493,7 +497,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           Container(
             width: double.infinity,
             height: 1,
-            color: Colors.white.withValues(alpha: 0.15),
+            color: Colors.grey.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 14),
           _buildWateringCalendar(weatherData, crop),
@@ -502,10 +506,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF263238),
+              color: const Color(0xFFE0E0E0),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.blueGrey,
+                color: Colors.grey.shade400,
                 width: 1,
               ),
             ),
@@ -519,15 +523,15 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF2A2A2A),
+              color: const Color(0xFFE0E0E0),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF444444), width: 1),
+              border: Border.all(color: Colors.grey.shade400, width: 1),
             ),
             child: Text(
               "${_l10n.aiAdviceFor} ${_getCropTranslation(crop)} :\n$recommendation",
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Colors.white,
+                color: Colors.black87,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -538,12 +542,13 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     );
   }
 
-  Widget _buildSoilHumidityWidget(int humidity) {
+  Widget _buildSoilHumidityWidget(double humidity) {
+    final int humidityRounded = humidity.round();
     String status;
 
-    if (humidity < 30) {
+    if (humidityRounded < 30) {
       status = _l10n.drySoil;
-    } else if (humidity < 60) {
+    } else if (humidityRounded < 60) {
       status = _l10n.mediumHumidity;
     } else {
       status = _l10n.humidSoil;
@@ -555,30 +560,19 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF102027), Color(0xFF263238)],
+          colors: [Color(0xFFDDDDDD), Color(0xFFEFEFEF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: primary.withOpacity(0.4),
+          color: primary.withOpacity(0.25),
           width: 1.2,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: 80,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                'assets/images/humidity.png', // 👉 adapte ce chemin si besoin
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -601,7 +595,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                   Text(
                     _l10n.soilMoisture,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black87,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -624,18 +618,18 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             children: [
               Expanded(
                 child: LinearProgressIndicator(
-                  value: (humidity.clamp(0, 100)) / 100,
+                  value: (humidityRounded.clamp(0, 100)) / 100,
                   color: primary,
-                  backgroundColor: Colors.white12,
+                  backgroundColor: Colors.grey.shade300,
                   minHeight: 14,
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
               const SizedBox(width: 12),
               Text(
-                "$humidity%",
+                "${humidity.toStringAsFixed(1).replaceAll('.', ',')}%",
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black87,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -671,7 +665,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
         Text(
           _l10n.wateringCalendar,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black87,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -697,7 +691,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               children: [
                 Text(
                   _getDayShortName((day["day"] as String)),
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: const TextStyle(color: Colors.black54, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Icon(
@@ -709,7 +703,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 Text(
                   shouldWater ? _l10n.waterToday : _l10n.rest,
                   style: TextStyle(
-                    color: shouldWater ? Colors.cyanAccent : Colors.white38,
+                    color: shouldWater ? Colors.cyanAccent : Colors.black38,
                     fontSize: 11,
                   ),
                 ),
@@ -849,10 +843,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isUsingMQTTData
-            ? Colors.blue.withValues(alpha: 0.2)
-            : Colors.orange.withValues(alpha: 0.2),
+        color: const Color(0xFF333333), // Darkened container color
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isUsingMQTTData
+              ? Colors.blueAccent.shade200
+              : Colors.orange.shade300,
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -899,7 +897,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       text,
       textAlign: TextAlign.center,
       style: const TextStyle(
-        color: Colors.white,
+        color: Colors.black87,
         fontSize: 13,
         fontWeight: FontWeight.bold,
       ),
