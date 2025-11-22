@@ -669,12 +669,104 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => Scaffold(
+                    backgroundColor: const Color(0xFF0F172A),
                     appBar: AppBar(
-                      title: const Text("Historique d'humidité"),
+                      backgroundColor: const Color(0xFF0F172A),
+                      elevation: 0,
+                      title: const Text(
+                        "Historique d'humidité",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
-                    body: const Center(
-                      child: Text(
-                        "Page d'historique d'humidité (à compléter)",
+                    body: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF0F172A),
+                            Color(0xFF1B5E20),
+                          ],
+                        ),
+                      ),
+                      child: SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Suivi de l'humidité du sol",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                "Retrouvez ici l'évolution des derniers pourcentages d'humidité.",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Expanded(
+                                child: Center(
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(18),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.06),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.12),
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.25),
+                                          blurRadius: 18,
+                                          offset: const Offset(0, 10),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: const [
+                                        Icon(
+                                          Icons.history,
+                                          color: Colors.white,
+                                          size: 42,
+                                        ),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          "Aucun historique pour le moment",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                        SizedBox(height: 6),
+                                        Text(
+                                          "Les prochaines valeurs reçues seront affichées ici.",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -688,7 +780,6 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       ),
     );
   }
-
   Widget _buildWateringCalendar(
     List<Map<String, dynamic>> weatherData,
     String crop,
