@@ -573,7 +573,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             child: _buildWateringExplanation(crop),
           ),
           const SizedBox(height: 20),
-          _buildSoilHumidityWidget(soilHumidity),
+          Center(
+            child: _buildSoilHumidityWidget(soilHumidity),
+          ),
           const SizedBox(height: 10),
           _buildDataSourceWidget(),
           const SizedBox(height: 20),
@@ -616,7 +618,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     const Color primary = Colors.orange; // même couleur que ton exemple
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white, // fond clair
         borderRadius: BorderRadius.circular(18),
@@ -631,6 +634,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Icon(
             Icons.water_drop,
@@ -685,6 +689,22 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       _recommendedInterval = 2;
     }
 
+    // Déterminer si aujourd'hui est un jour d'arrosage lorsque le plan est actif
+    bool _isWateringReminderDay = false;
+    if (_isIrrigationPlanActive && _irrigationStartDate != null) {
+      final today = DateTime.now();
+      final start = DateTime(
+        _irrigationStartDate!.year,
+        _irrigationStartDate!.month,
+        _irrigationStartDate!.day,
+      );
+      final current = DateTime(today.year, today.month, today.day);
+      final diffDays = current.difference(start).inDays;
+      if (diffDays >= 0 && diffDays % _recommendedInterval == 0) {
+        _isWateringReminderDay = true;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -697,6 +717,41 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           ),
         ),
         const SizedBox(height: 12),
+
+        if (_isWateringReminderDay) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.orange.withOpacity(0.6),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: const [
+                Icon(
+                  Icons.notifications_active,
+                  color: Colors.orange,
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "💧 Rappel arrosage : aujourd'hui est un jour prévu par le plan.",
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
 
         // RECOMMANDATIONS API
         Container(
@@ -766,36 +821,92 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           // Plan pas encore démarré
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
-              color: _isDarkTheme ? const Color(0xFF1A1A1A) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(18),
+              gradient: _isDarkTheme
+                  ? const LinearGradient(
+                      colors: [Color(0xFF1A1A1A), Color(0xFF263238)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    )
+                  : const LinearGradient(
+                      colors: [Color(0xFFF5FFF7), Color(0xFFE8F5E9)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
               border: Border.all(
                 color: _isDarkTheme
-                    ? Colors.green.withOpacity(0.3)
-                    : const Color(0xFF4CAF50).withOpacity(0.3),
+                    ? Colors.green.withOpacity(0.25)
+                    : const Color(0xFF4CAF50).withOpacity(0.25),
                 width: 1,
               ),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.play_circle_outline,
-                  color: _isDarkTheme
-                      ? Colors.green.shade300
-                      : const Color(0xFF4CAF50),
-                  size: 48,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  "Prêt à commencer l'arrosage ?",
-                  style: TextStyle(
-                    color: _isDarkTheme ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                // Icône play cerclée plus créative
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.95, end: 1.05),
+                  duration: const Duration(milliseconds: 1200),
+                  curve: Curves.easeInOut,
+                  builder: (context, value, child) {
+                    return Transform.scale(scale: value, child: child);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: _isDarkTheme
+                            ? [
+                                Colors.green.shade400,
+                                Colors.green.shade200,
+                              ]
+                            : const [
+                                Color(0xFF4CAF50),
+                                Color(0xFF8BC34A),
+                              ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (_isDarkTheme
+                                  ? Colors.greenAccent
+                                  : const Color(0xFF4CAF50))
+                              .withOpacity(0.4),
+                          blurRadius: 14,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 14),
+                Text(
+                  "Prêt à commencer l'arrosage ?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _isDarkTheme ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Text(
                   "Vous décidez quand démarrer le plan d'arrosage recommandé.",
                   textAlign: TextAlign.center,
@@ -804,7 +915,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
                 // BOUTON START AMÉLIORÉ
                 GestureDetector(

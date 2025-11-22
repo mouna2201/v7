@@ -172,9 +172,9 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
                               const Icon(Icons.square_foot,
                                   color: Color(0xFF1B5E20)),
                               const SizedBox(width: 8),
-                              Text(
-                                _l10n.surfaceAreaHectares,
-                                style: const TextStyle(
+                              const Text(
+                                '📏 Superficie (m²)',
+                                style: TextStyle(
                                   color: Color(0xFF1B5E20),
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13,
@@ -185,7 +185,7 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
                           const SizedBox(height: 6),
                           _buildTextField(
                             controller: hectares,
-                            label: _l10n.surfaceHint,
+                            label: 'Ex: 500 (m²)',
                             type: TextInputType.number,
                           ),
                           const SizedBox(height: 20),

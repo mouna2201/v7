@@ -40,57 +40,65 @@ class _AnimatedHumidityCircleState extends State<AnimatedHumidityCircle>
   Widget build(BuildContext context) {
     final clamped = widget.humidity.clamp(0, 100).toDouble();
 
-    return SizedBox(
-      width: 140,
-      height: 140,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Cercle blanc de fond
-          Container(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-            ),
-          ),
-          // Eau animée
-          ClipOval(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                final t = _controller.value;
-                const height = 140.0;
-                final waterLevel = height * (1 - clamped / 100);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        const height = 260.0;
 
-                return CustomPaint(
-                  size: const Size(140, 140),
-                  painter: _WaterPainter(
-                    animationValue: t,
-                    waterLevel: waterLevel,
-                    color: widget.color,
-                  ),
-                );
-              },
-            ),
-          ),
-          // Pourcentage
-          Text(
-            '${clamped.round()}%',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+        return SizedBox(
+          width: width,
+          height: height,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Fond blanc en forme de goutte
+              ClipPath(
+                clipper: _DropClipper(),
+                child: Container(
+                  color: Colors.white,
                 ),
-              ],
-            ),
+              ),
+              // Eau animée
+              ClipPath(
+                clipper: _DropClipper(),
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    final t = _controller.value;
+
+                    final waterLevel = height * (1 - clamped / 100);
+
+                    return CustomPaint(
+                      size: Size(width, height),
+                      painter: _WaterPainter(
+                        animationValue: t,
+                        waterLevel: waterLevel,
+                        color: widget.color,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Pourcentage
+              Text(
+                '${clamped.round()}%',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -148,4 +156,47 @@ class _WaterPainter extends CustomPainter {
         oldDelegate.waterLevel != waterLevel ||
         oldDelegate.color != color;
   }
+}
+
+class _DropClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final width = size.width;
+    final height = size.height;
+
+    final path = Path();
+    final centerX = width / 2;
+    final topY = height * 0.02;   // pointe plus haute
+    final bottomY = height * 0.97; // base un peu plus basse
+
+    // Goutte / larme : fine en haut, large et bien arrondie en bas
+    path.moveTo(centerX, topY);
+
+    // Côté droit : épaule plus haute et corps étiré
+    path.quadraticBezierTo(
+      centerX + width * 0.14, height * 0.22,
+      centerX + width * 0.26, height * 0.58,
+    );
+    // Grande courbe de la base (encore plus arrondie)
+    path.quadraticBezierTo(
+      centerX + width * 0.26, height * 0.96,
+      centerX, bottomY,
+    );
+
+    // Côté gauche (symétrique)
+    path.quadraticBezierTo(
+      centerX - width * 0.26, height * 0.96,
+      centerX - width * 0.26, height * 0.58,
+    );
+    path.quadraticBezierTo(
+      centerX - width * 0.14, height * 0.22,
+      centerX, topY,
+    );
+
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _DropClipper oldClipper) => false;
 }
