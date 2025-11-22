@@ -7,9 +7,13 @@ import 'presentation/providers/language_provider.dart';
 import 'services/app_initializer.dart';
 import 'screens/welcome/welcome_screen.dart';
 import 'l10n/app_localizations.dart';
+import 'services/notification_service.dart';
 
 /// Point d'entrée de l'application
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
+
   runApp(
     const ProviderScope(
       child: AgroApp(),
