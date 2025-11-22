@@ -663,6 +663,27 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               fontSize: 14,
             ),
           ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(
+                      title: const Text("Historique d'humidité"),
+                    ),
+                    body: const Center(
+                      child: Text(
+                        "Page d'historique d'humidité (à compléter)",
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.history),
+            label: const Text("Voir l'historique d'humidité"),
+          ),
         ],
       ),
     );
