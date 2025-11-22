@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../services/mqtt_service.dart';
 import '../../services/weather_service.dart';
+import '../../services/notification_service.dart';
+
 import '../../models/sensor_data.dart';
 import '../../models/weather_data.dart';
 import '../../theme/app_theme.dart';
@@ -43,6 +45,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   bool _isIrrigationPlanActive = false;
   DateTime? _irrigationStartDate;
   int _recommendedInterval = 2; // Intervalle recommandé par l'API
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
+  DateTime _selectedStartDate = DateTime.now();
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
 
   // TODO: adapter l'URL de base a ton serveur (localhost, IP, domaine)
   static const String _apiBaseUrl = 'http://localhost:3000';
@@ -595,6 +605,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 : Colors.grey.withOpacity(0.3),
           ),
           const SizedBox(height: 14),
+          // Humidité du sol en premier
+          Center(
+            child: _buildSoilHumidityWidget(soilHumidity),
+          ),
+          const SizedBox(height: 15),
+          // Puis le plan d'arrosage
           _buildWateringCalendar(weatherData, crop),
           const SizedBox(height: 15),
           Container(
@@ -611,10 +627,6 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             child: _buildWateringExplanation(crop),
           ),
           const SizedBox(height: 20),
-          Center(
-            child: _buildSoilHumidityWidget(soilHumidity),
-          ),
-          const SizedBox(height: 10),
           _buildDataSourceWidget(),
           const SizedBox(height: 20),
           Container(
@@ -653,7 +665,15 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       status = _l10n.humidSoil;
     }
 
-    const Color primary = Colors.orange; // même couleur que ton exemple
+    // Couleur dynamique en fonction du niveau d'humidité
+    Color primary;
+    if (humidity < 30) {
+      primary = Colors.red; // sol sec
+    } else if (humidity < 60) {
+      primary = Colors.orange; // humidité moyenne
+    } else {
+      primary = Colors.green; // sol bien humide
+    }
 
     return Container(
       width: double.infinity,
@@ -695,7 +715,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           const SizedBox(height: 12),
           Text(
             status,
-            style: const TextStyle(
+            style: TextStyle(
               color: primary,
               fontWeight: FontWeight.w600,
               fontSize: 14,
@@ -1039,8 +1059,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color:
-                _isDarkTheme ? const Color(0xFF2A2A2A) : const Color(0xFFE3F2FD),
+            color: _isDarkTheme
+                ? const Color(0xFF2A2A2A)
+                : const Color(0xFFE3F2FD),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: _isDarkTheme
@@ -1199,13 +1220,146 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 ),
                 const SizedBox(height: 18),
 
+                // Sélection du jour de début d'arrosage
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(_isDarkTheme ? 0.06 : 0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: (_isDarkTheme
+                              ? Colors.greenAccent
+                              : const Color(0xFF4CAF50))
+                          .withOpacity(0.4),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.event,
+                        color: _isDarkTheme
+                            ? Colors.greenAccent
+                            : const Color(0xFF4CAF50),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Début du plan : ${_selectedStartDate.day.toString().padLeft(2, '0')}/${_selectedStartDate.month.toString().padLeft(2, '0')}/${_selectedStartDate.year}",
+                          style: TextStyle(
+                            color: _isDarkTheme ? Colors.white : Colors.black87,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final today = DateTime.now();
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedStartDate,
+                            firstDate: DateTime(today.year - 1),
+                            lastDate: DateTime(today.year + 2),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _selectedStartDate = DateTime(
+                                picked.year,
+                                picked.month,
+                                picked.day,
+                              );
+                            });
+                          }
+                        },
+                        child: const Text(
+                          "Modifier",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Sélection de l'heure de rappel
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(_isDarkTheme ? 0.06 : 0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: (_isDarkTheme
+                              ? Colors.greenAccent
+                              : const Color(0xFF4CAF50))
+                          .withOpacity(0.4),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        color: _isDarkTheme
+                            ? Colors.greenAccent
+                            : const Color(0xFF4CAF50),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Heure du rappel : ${_formatTimeOfDay(_reminderTime)}",
+                          style: TextStyle(
+                            color: _isDarkTheme ? Colors.white : Colors.black87,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: _reminderTime,
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _reminderTime = picked;
+                            });
+                          }
+                        },
+                        child: const Text(
+                          "Modifier",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
                 // BOUTON START AMÉLIORÉ
                 GestureDetector(
                   onTap: () {
                     setState(() {
                       _isIrrigationPlanActive = true;
-                      _irrigationStartDate = DateTime.now();
+                      _irrigationStartDate = _selectedStartDate;
                     });
+
+                    // Notification de rappel (Android natif, log sur Web).
+                    NotificationService().scheduleIrrigationReminder(
+                      crop: _getCropTranslation(crop),
+                      intervalDays: _recommendedInterval,
+                      startDate: _selectedStartDate,
+                      hour: _reminderTime.hour,
+                      minute: _reminderTime.minute,
+                    );
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
