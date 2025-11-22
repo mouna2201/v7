@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../../widgets/custom_button.dart';
 import '../../services/auth_service.dart';
 import 'farmer_form_screen.dart';
+import 'irrigation_plan_screen.dart';
 
 class FarmerRegisterScreen extends StatefulWidget {
   const FarmerRegisterScreen({super.key});
@@ -79,9 +82,46 @@ class _FarmerLoginScreenState extends State<FarmerLoginScreen> {
       ),
     );
 
+    // Vérifier s'il existe déjà un plan d'irrigation pour ce fermier
+    final prefs = await SharedPreferences.getInstance();
+    final normalizedName = name.toLowerCase().replaceAll(' ', '_');
+    final planKey = 'farmer_plan_'
+        '$normalizedName';
+    final savedPlanJson = prefs.getString(planKey);
+
+    if (savedPlanJson != null) {
+      try {
+        final Map<String, dynamic> plan =
+            jsonDecode(savedPlanJson) as Map<String, dynamic>;
+        final String location = plan['location'] as String? ?? '';
+        final String soilType = plan['soilType'] as String? ?? 'sableux';
+        final List<dynamic> cropsRaw = plan['crops'] as List<dynamic>? ?? [];
+        final List<String> cropTypes =
+            cropsRaw.map((e) => e.toString()).toList();
+
+        if (location.isNotEmpty && cropTypes.isNotEmpty) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => IrrigationPlanScreen(
+                location: location,
+                soilType: soilType,
+                cropTypes: cropTypes,
+              ),
+            ),
+          );
+          return;
+        }
+      } catch (_) {
+        // en cas de problème de parsing, on retombe sur le formulaire
+      }
+    }
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const FarmerFormScreen()),
+      MaterialPageRoute(
+        builder: (_) => FarmerFormScreen(farmerName: name),
+      ),
     );
   }
 

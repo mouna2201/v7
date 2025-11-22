@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../../widgets/custom_button.dart';
 import 'irrigation_plan_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 
 class FarmerFormScreen extends StatefulWidget {
-  const FarmerFormScreen({super.key});
+  final String farmerName;
+
+  const FarmerFormScreen({super.key, required this.farmerName});
 
   @override
   State<FarmerFormScreen> createState() => _FarmerFormScreenState();
@@ -193,7 +197,7 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
                             width: double.infinity,
                             child: CustomButton(
                               text: _l10n.generateAIPlan,
-                              onTap: () {
+                              onTap: () async {
                                 if (location.text.isEmpty ||
                                     crop.text.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -209,6 +213,23 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
                                     .map((c) => c.trim())
                                     .where((c) => c.isNotEmpty)
                                     .toList();
+
+                                // Sauvegarder le plan d'irrigation pour ce fermier
+                                final prefs = await SharedPreferences.getInstance();
+                                final normalizedName = widget.farmerName
+                                    .toLowerCase()
+                                    .replaceAll(' ', '_');
+                                final planKey = 'farmer_plan_'
+                                    '$normalizedName';
+
+                                await prefs.setString(
+                                  planKey,
+                                  jsonEncode({
+                                    'location': location.text,
+                                    'soilType': soil,
+                                    'crops': cropList,
+                                  }),
+                                );
 
                                 Navigator.push(
                                   context,
