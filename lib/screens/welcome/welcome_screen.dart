@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/custom_button.dart';
 import '../enterprise/enterprise_role_screen.dart';
 import '../farmer/farmer_form_screen.dart';
+import '../farmer/register_screen.dart';
 import '../../presentation/providers/language_provider.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:math';
@@ -177,7 +178,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const FarmerFormScreen()),
+                            builder: (_) => const FarmerLoginScreen(),
+                          ),
                         ),
                       ),
                       _buildRoleCard(

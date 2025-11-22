@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/auth_service.dart';
+import 'farmer_form_screen.dart';
 
 class FarmerRegisterScreen extends StatefulWidget {
   const FarmerRegisterScreen({super.key});
@@ -9,9 +10,131 @@ class FarmerRegisterScreen extends StatefulWidget {
   State<FarmerRegisterScreen> createState() => _FarmerRegisterScreenState();
 }
 
+class FarmerLoginScreen extends StatefulWidget {
+  const FarmerLoginScreen({super.key});
+
+  @override
+  State<FarmerLoginScreen> createState() => _FarmerLoginScreenState();
+}
+
+class _FarmerLoginScreenState extends State<FarmerLoginScreen> {
+  final _nameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _loading = false;
+  final AuthService _authService = AuthService();
+
+  Future<void> _login() async {
+    final name = _nameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (name.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez remplir tous les champs'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    // Utilise le même email technique que pour l’inscription
+    final String technicalEmail =
+        '${name.toLowerCase().replaceAll(' ', '_')}@farmer.local';
+
+    final result = await _authService.login(
+      email: technicalEmail,
+      password: password,
+    );
+
+    setState(() => _loading = false);
+
+    if (!result['success']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(result['message']?.toString() ?? 'Identifiants incorrects'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final user = result['user'];
+    if (user.role != 'farmer') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Seul un compte fermier peut se connecter ici'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Bienvenue 👨‍🌾 Fermier !'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const FarmerFormScreen()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Connexion Fermier'),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Nom'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Mot de passe'),
+              obscureText: true,
+            ),
+            const SizedBox(height: 20),
+            _loading
+                ? const Center(child: CircularProgressIndicator())
+                : CustomButton(
+                    text: 'Se connecter',
+                    onTap: _login,
+                  ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const FarmerRegisterScreen(),
+                  ),
+                );
+              },
+              child: const Text("S'inscrire comme fermier"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _FarmerRegisterScreenState extends State<FarmerRegisterScreen> {
   final _name = TextEditingController();
-  final _email = TextEditingController();
   final _password = TextEditingController();
   bool _loading = false;
   final AuthService _authService = AuthService();
@@ -24,10 +147,18 @@ class _FarmerRegisterScreenState extends State<FarmerRegisterScreen> {
 
   Future<void> _onRegister() async {
     setState(() => _loading = true);
+
+    final String name = _name.text.trim();
+    final String password = _password.text.trim();
+
+    // Génère un email technique à partir du nom, car l’API backend demande un email
+    final String technicalEmail =
+        '${name.toLowerCase().replaceAll(' ', '_')}@farmer.local';
+
     final result = await _authService.register(
-      name: _name.text,
-      email: _email.text,
-      password: _password.text,
+      name: name,
+      email: technicalEmail,
+      password: password,
       role: 'farmer',
     );
     setState(() => _loading = false);
@@ -49,17 +180,17 @@ class _FarmerRegisterScreenState extends State<FarmerRegisterScreen> {
         child: Column(
           children: [
             TextField(
-                controller: _name,
-                decoration: const InputDecoration(labelText: 'Nom complet')),
+              controller: _name,
+              decoration:
+                  const InputDecoration(labelText: 'Nom (identifiant fermier)'),
+            ),
             const SizedBox(height: 12),
             TextField(
-                controller: _email,
-                decoration: const InputDecoration(labelText: 'Email')),
-            const SizedBox(height: 12),
-            TextField(
-                controller: _password,
-                decoration: const InputDecoration(labelText: 'Mot de passe'),
-                obscureText: true),
+              controller: _password,
+              decoration:
+                  const InputDecoration(labelText: 'Mot de passe'),
+              obscureText: true,
+            ),
             const SizedBox(height: 20),
             _loading
                 ? const CircularProgressIndicator()

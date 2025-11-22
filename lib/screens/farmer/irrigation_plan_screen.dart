@@ -11,6 +11,7 @@ import '../../models/weather_data.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/animated_humidity_circle.dart';
+import '../welcome/welcome_screen.dart';
 
 class IrrigationPlanScreen extends StatefulWidget {
   final String location;
@@ -181,6 +182,18 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             ),
           ),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Exit',
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const WelcomeScreen(),
+                  ),
+                  (route) => false,
+                );
+              },
+            ),
             IconButton(
               icon: Icon(
                 _isDarkTheme ? Icons.light_mode : Icons.dark_mode,
