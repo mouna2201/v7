@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../services/mqtt_service.dart';
 import '../../services/weather_service.dart';
 import '../../models/sensor_data.dart';
@@ -7,6 +9,7 @@ import '../../models/weather_data.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/animated_humidity_circle.dart';
+
 class IrrigationPlanScreen extends StatefulWidget {
   final String location;
   final String soilType;
@@ -40,6 +43,41 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   bool _isIrrigationPlanActive = false;
   DateTime? _irrigationStartDate;
   int _recommendedInterval = 2; // Intervalle recommandé par l'API
+
+  // TODO: adapter l'URL de base a ton serveur (localhost, IP, domaine)
+  static const String _apiBaseUrl = 'http://localhost:3000';
+  static const String _historyDeviceId = 'soil1';
+
+  // TODO: remplace cette valeur par un vrai token JWT renvoyé par /api/users/login
+  static const String _jwtToken = 'COLLE_ICI_UN_TOKEN_JWT_VALIDE';
+
+  Future<List<HumidityRecord>> _fetchHumidityHistory() async {
+    final uri = Uri.parse(
+      '$_apiBaseUrl/api/capteurs/$_historyDeviceId?limit=50',
+    );
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $_jwtToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Erreur API historique: ${response.statusCode} ${response.body}',
+      );
+    }
+
+    final Map<String, dynamic> body =
+        json.decode(response.body) as Map<String, dynamic>;
+    final List<dynamic> data = body['data'] as List<dynamic>;
+
+    return data
+        .map((e) => HumidityRecord.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 
   @override
   void initState() {
@@ -665,6 +703,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           ),
           const SizedBox(height: 8),
           TextButton.icon(
+            icon: const Icon(Icons.history),
+            label: const Text('Historique'),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -713,55 +753,188 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                               ),
                               const SizedBox(height: 24),
                               Expanded(
-                                child: Center(
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(18),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.06),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.12),
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.25),
-                                          blurRadius: 18,
-                                          offset: const Offset(0, 10),
+                                child: FutureBuilder<List<HumidityRecord>>(
+                                  future: _fetchHumidityHistory(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            Colors.white,
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: const [
-                                        Icon(
-                                          Icons.history,
-                                          color: Colors.white,
-                                          size: 42,
-                                        ),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          "Aucun historique pour le moment",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.white,
+                                      );
+                                    }
+
+                                    if (snapshot.hasError) {
+                                      return Center(
+                                        child: Text(
+                                          "Erreur de chargement de l'historique",
+                                          style: const TextStyle(
+                                            color: Colors.redAccent,
+                                            fontSize: 14,
                                             fontWeight: FontWeight.w600,
-                                            fontSize: 15,
                                           ),
-                                        ),
-                                        SizedBox(height: 6),
-                                        Text(
-                                          "Les prochaines valeurs reçues seront affichées ici.",
                                           textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 13,
+                                        ),
+                                      );
+                                    }
+
+                                    final records = snapshot.data ?? [];
+
+                                    // Dédoublonnage simple : on garde une seule entrée
+                                    // par combinaison (valeur, année, mois, jour, heure, minute).
+                                    final Map<String, HumidityRecord> unique = {};
+                                    for (final r in records) {
+                                      final d = r.timestamp;
+                                      final key =
+                                          '${r.value.toStringAsFixed(0)}-${d.year}-${d.month}-${d.day}-${d.hour}-${d.minute}';
+                                      unique[key] = r;
+                                    }
+                                    final dedupedRecords = unique.values.toList();
+
+                                    if (dedupedRecords.isEmpty) {
+                                      return Center(
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(18),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.white.withOpacity(0.06),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: Colors.white
+                                                  .withOpacity(0.12),
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.25),
+                                                blurRadius: 18,
+                                                offset:
+                                                    const Offset(0, 10),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: const [
+                                              Icon(
+                                                Icons.history,
+                                                color: Colors.white,
+                                                size: 42,
+                                              ),
+                                              SizedBox(height: 12),
+                                              Text(
+                                                "Aucun historique pour le moment",
+                                                textAlign:
+                                                    TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight:
+                                                      FontWeight.w600,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              SizedBox(height: 6),
+                                              Text(
+                                                "Les prochaines valeurs reçues seront affichées ici.",
+                                                textAlign:
+                                                    TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
+                                      );
+                                    }
+
+                                    return ListView.separated(
+                                      itemCount: dedupedRecords.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 10),
+                                      itemBuilder: (context, index) {
+                                        final r = dedupedRecords[index];
+
+                                        final d = r.timestamp;
+                                        final dateStr =
+                                            "${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')} "
+                                            "${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}";
+
+                                        return Container(
+                                          padding:
+                                              const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white
+                                                .withOpacity(0.06),
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                            border: Border.all(
+                                              color: Colors.white
+                                                  .withOpacity(0.12),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.water_drop,
+                                                color:
+                                                    Colors.lightBlueAccent,
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .start,
+                                                  children: [
+                                                    Text(
+                                                      "${r.value.toStringAsFixed(0)} %",
+                                                      style:
+                                                          const TextStyle(
+                                                        color:
+                                                            Colors.white,
+                                                        fontWeight:
+                                                            FontWeight
+                                                                .bold,
+                                                        fontSize: 15,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                        height: 2),
+                                                    Text(
+                                                      dateStr,
+                                                      style:
+                                                          const TextStyle(
+                                                        color:
+                                                            Colors.white70,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Text(
+                                                r.deviceId,
+                                                style: const TextStyle(
+                                                  color: Colors.white54,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
                               ),
                             ],
@@ -773,20 +946,17 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.history),
-            label: const Text("Voir l'historique d'humidité"),
           ),
         ],
       ),
     );
   }
+
+  /// Calendrier d'arrosage + recommandation IA
   Widget _buildWateringCalendar(
     List<Map<String, dynamic>> weatherData,
     String crop,
   ) {
-    // Calculer l'intervalle recommandé selon la culture
-    int _recommendedInterval;
-
     if (crop.toLowerCase().contains("olive")) {
       _recommendedInterval = 7;
     } else if (crop.toLowerCase().contains("blé")) {
@@ -1525,5 +1695,32 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     } else {
       return "$solInfo ${_l10n.soilModeratelyHumid}\n$besoin";
     }
+  }
+}
+
+class HumidityRecord {
+  final double value;
+  final DateTime timestamp;
+  final String deviceId;
+
+  HumidityRecord({
+    required this.value,
+    required this.timestamp,
+    required this.deviceId,
+  });
+
+  factory HumidityRecord.fromJson(Map<String, dynamic> json) {
+    // On essaye d'abord l'humidité du sol, puis l'humidité de l'air,
+    // puis la température (cas des données Node-RED actuelles)
+    final num? soil = json['humidite_sol'] as num?;
+    final num? air = json['humidite'] as num?;
+    final num? temp = json['temperature'] as num?;
+    final num valueNum = soil ?? air ?? temp ?? 0;
+
+    return HumidityRecord(
+      value: valueNum.toDouble(),
+      timestamp: DateTime.parse(json['timestamp_mesure'] as String),
+      deviceId: json['device_id'] as String? ?? 'unknown',
+    );
   }
 }
