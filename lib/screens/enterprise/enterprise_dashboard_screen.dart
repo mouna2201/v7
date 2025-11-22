@@ -4,6 +4,8 @@ import 'enterprise_add_farmer_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
+import 'enterprise_role_screen.dart';
+import '../farmer/irrigation_plan_screen.dart';
 
 class EnterpriseDashboardScreen extends StatefulWidget {
   const EnterpriseDashboardScreen({super.key});
@@ -40,6 +42,22 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
         appBar: AppBar(
           title: const Text('Tableau de bord Admin'),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Se déconnecter',
+              onPressed: () async {
+                await _authService.logout();
+                if (!mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const EnterpriseRoleScreen(),
+                  ),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -242,66 +260,83 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                                             ),
                                           );
                                         },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(14),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Colors.white.withOpacity(0.06),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            border: Border.all(
-                                              color: Colors.white
-                                                  .withOpacity(0.08),
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => IrrigationPlanScreen(
+                                                  // Utilisation de valeurs simples par défaut pour ouvrir le plan d'irrigation
+                                                  location: farmer.name.isNotEmpty
+                                                      ? farmer.name
+                                                      : 'Parcelle',
+                                                  soilType: 'sableux',
+                                                  cropTypes: const ['culture'],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(14),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.white.withOpacity(0.06),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: Colors.white
+                                                    .withOpacity(0.08),
+                                              ),
                                             ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                height: 40,
-                                                width: 40,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  gradient:
-                                                      const LinearGradient(
-                                                    colors: [
-                                                      Color(0xFF22C55E),
-                                                      Color(0xFF16A34A),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  height: 40,
+                                                  width: 40,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    gradient:
+                                                        const LinearGradient(
+                                                      colors: [
+                                                        Color(0xFF22C55E),
+                                                        Color(0xFF16A34A),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.person,
+                                                    color: Colors.white,
+                                                    size: 22,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        farmer.name,
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        farmer.email,
+                                                        style: const TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
-                                                child: const Icon(
-                                                  Icons.person,
-                                                  color: Colors.white,
-                                                  size: 22,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      farmer.name,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      farmer.email,
-                                                      style: const TextStyle(
-                                                        color: Colors.white70,
-                                                        fontSize: 13,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       );

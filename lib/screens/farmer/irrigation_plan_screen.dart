@@ -804,18 +804,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
                                     final records = snapshot.data ?? [];
 
-                                    // Dédoublonnage simple : on garde une seule entrée
-                                    // par combinaison (valeur, année, mois, jour, heure, minute).
-                                    final Map<String, HumidityRecord> unique = {};
-                                    for (final r in records) {
-                                      final d = r.timestamp;
-                                      final key =
-                                          '${r.value.toStringAsFixed(0)}-${d.year}-${d.month}-${d.day}-${d.hour}-${d.minute}';
-                                      unique[key] = r;
-                                    }
-                                    final dedupedRecords = unique.values.toList();
+                                    // On n'applique plus de dédoublonnage ici :
+                                    // l'historique affiche toutes les mesures renvoyées par l'API.
 
-                                    if (dedupedRecords.isEmpty) {
+                                    if (records.isEmpty) {
                                       return Center(
                                         child: Container(
                                           width: double.infinity,
@@ -878,11 +870,11 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                     }
 
                                     return ListView.separated(
-                                      itemCount: dedupedRecords.length,
+                                      itemCount: records.length,
                                       separatorBuilder: (_, __) =>
                                           const SizedBox(height: 10),
                                       itemBuilder: (context, index) {
-                                        final r = dedupedRecords[index];
+                                        final r = records[index];
 
                                         final d = r.timestamp;
                                         final dateStr =
@@ -1657,6 +1649,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
         "day": "saturday",
         "temp": "${currentTemp + random.nextInt(5) + 1}°",
         "min": "${currentTemp - 2 + random.nextInt(3)}°",
+        "rain": random.nextInt(100),
+      },
+      {
+        "day": "sunday",
+        "temp": "${currentTemp + random.nextInt(5)}°",
+        "min": "${currentTemp - 3 + random.nextInt(3)}°",
         "rain": random.nextInt(100),
       },
     ];

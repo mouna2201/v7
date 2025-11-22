@@ -26,6 +26,8 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       email: _email.text,
       password: _password.text,
       role: 'farmer', // création d'un compte fermier
+      updateToken:
+          false, // ne pas remplacer le token admin courant quand on crée un fermier
     );
     setState(() => _loading = false);
 

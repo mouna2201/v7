@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_theme.dart';
 import '../farmer/irrigation_plan_screen.dart';
+import '../enterprise/enterprise_role_screen.dart';
+import '../../services/auth_service.dart';
 
 class EnterpriseFormScreen extends StatefulWidget {
   const EnterpriseFormScreen({super.key});
@@ -15,6 +17,7 @@ class _EnterpriseFormScreenState extends State<EnterpriseFormScreen> {
   final TextEditingController location = TextEditingController();
   final TextEditingController crop = TextEditingController();
   final TextEditingController hectares = TextEditingController();
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +33,20 @@ class _EnterpriseFormScreenState extends State<EnterpriseFormScreen> {
           ),
           centerTitle: true,
           actions: [
+            IconButton(
+              icon: Icon(Icons.logout, color: theme.colorScheme.primary),
+              tooltip: 'Se déconnecter',
+              onPressed: () async {
+                await _authService.logout();
+                if (!mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const EnterpriseRoleScreen(),
+                  ),
+                  (route) => false,
+                );
+              },
+            ),
             IconButton(
               icon: Icon(Icons.palette, color: theme.colorScheme.primary),
               onPressed: () {

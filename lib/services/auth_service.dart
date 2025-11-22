@@ -18,6 +18,7 @@ class AuthService {
     required String email,
     required String password,
     String role = 'farmer', // 'farmer', 'enterprise', 'admin'
+    bool updateToken = true, // si false, on ne remplace pas le token courant
   }) async {
     try {
       final response = await http.post(
@@ -34,7 +35,9 @@ class AuthService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 201) {
-        _inMemoryToken = data['token'];
+        if (updateToken) {
+          _inMemoryToken = data['token'];
+        }
 
         return {
           'success': true,

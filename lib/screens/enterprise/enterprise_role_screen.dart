@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_theme.dart';
 import 'login_screen.dart'; // login_screen.dart dans le même dossier (entreprise)
+import '../welcome/welcome_screen.dart';
 
 class EnterpriseRoleScreen extends StatelessWidget {
   const EnterpriseRoleScreen({super.key});
@@ -14,6 +15,20 @@ class EnterpriseRoleScreen extends StatelessWidget {
         appBar: AppBar(
           title: const Text("Choisir votre rôle"),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Retour à l\'accueil',
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const WelcomeScreen(),
+                  ),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

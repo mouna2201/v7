@@ -61,10 +61,10 @@ class MQTTService {
         print('Connecté à HiveMQ Cloud');
         _subscribeToTopics();
         _listenToMessages();
-        
-        // Envoyer un message de test pour vérifier la connexion
-        _sendTestMessage();
-        
+
+        // Anciennement : envoi d'un message de test "42" qui faussait la dernière humidité.
+        // Désormais, on ne déclenche plus de valeur factice : seules les vraies données MQTT sont utilisées.
+
         return;
       }
     } catch (e) {
@@ -114,14 +114,8 @@ class MQTTService {
   }
 
   void _sendTestMessage() {
-    // Pour l'instant, on va juste logger qu'on essaie d'envoyer un message
-    // La réception des messages existants dans HiveMQ est le vrai problème
-    print('Test: Envoi message vers farm/soil1 - Vérification réception...');
-    
-    // On va forcer une actualisation des données pour tester
-    print('Test: Simulation réception message "42"');
-    final testData = SensorData.fromMqtt('farm/soil1', '42');
-    onDataReceived?.call(testData);
+    // Fonction conservée pour debug manuel si besoin, mais non appelée automatiquement.
+    print('Test MQTT manuel: appelez _sendTestMessage() uniquement en debug si nécessaire.');
   }
 
   void dispose() {
