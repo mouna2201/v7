@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const EnterpriseDashboardScreen()),
       );
     } else {
-      // Superviseur : aller directement au formulaire de parcelle
+      // Superviseur : aller vers le formulaire d'entreprise
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const EnterpriseFormScreen()),

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../../widgets/custom_button.dart';
 import 'irrigation_plan_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/auth_service.dart';
 
 class FarmerFormScreen extends StatefulWidget {
   final String farmerName;
@@ -21,6 +20,7 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
   final TextEditingController crop = TextEditingController();
   final TextEditingController hectares = TextEditingController();
   late AppLocalizations _l10n;
+  final AuthService _authService = AuthService();
 
   @override
   void didChangeDependencies() {
@@ -214,24 +214,31 @@ class _FarmerFormScreenState extends State<FarmerFormScreen> {
                                     .where((c) => c.isNotEmpty)
                                     .toList();
 
-                                // Sauvegarder le plan d'irrigation pour ce fermier
-                                final prefs = await SharedPreferences.getInstance();
-                                final normalizedName = widget.farmerName
-                                    .toLowerCase()
-                                    .replaceAll(' ', '_');
-                                final planKey = 'farmer_plan_'
-                                    '$normalizedName';
+                                final area = double.tryParse(
+                                      hectares.text.replaceAll(',', '.'),
+                                    ) ??
+                                    0;
 
-                                await prefs.setString(
-                                  planKey,
-                                  jsonEncode({
-                                    'location': location.text,
-                                    'soilType': soil,
-                                    'crops': cropList,
-                                  }),
+                                // Sauvegarder le profil de parcelle sur le backend
+                                final ok =
+                                    await _authService.updateFarmerProfile(
+                                  parcelLocation: location.text,
+                                  soilType: soil,
+                                  crops: cropList,
+                                  areaM2: area,
                                 );
 
-                                Navigator.push(
+                                if (!ok) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Erreur lors de la sauvegarde du profil'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => IrrigationPlanScreen(

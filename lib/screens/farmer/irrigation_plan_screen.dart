@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../../services/mqtt_service.dart';
 import '../../services/weather_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/mistral_service.dart';
 
 import '../../models/sensor_data.dart';
 import '../../models/weather_data.dart';
@@ -32,6 +33,7 @@ class IrrigationPlanScreen extends StatefulWidget {
 class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   final MQTTService _mqttService = MQTTService();
   final WeatherService _weatherService = WeatherService();
+  final MistralService _mistralService = MistralService();
   SensorData? _latestSensorData;
   final List<SensorData> _sensorHistory = [];
   WeatherData? _currentWeather;
@@ -39,6 +41,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   String _weatherError = '';
   bool _showWeeklyWeather = false;
   late AppLocalizations _l10n;
+  bool _isLoadingMistral = false;
+  String? _mistralPlan;
+  String? _mistralError;
+  List<String>? _mistralWaterDaysKeys; // ex: ["monday","wednesday"]
 
   // Thème local pour cette page (toggle sombre / clair)
   ThemeData _currentTheme = AppTheme.lightTheme;
@@ -95,6 +101,77 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     super.initState();
     _initializeMQTT();
     _loadWeatherForLocation();
+  }
+
+  Future<void> _startIrrigationPlanWithMistral(String crop) async {
+    setState(() {
+      _isLoadingMistral = true;
+      _mistralError = null;
+    });
+
+    try {
+      final int soilHumidity = _latestSensorData?.soilMoisture?.toInt() ?? 0;
+      final String weatherDescription =
+          _currentWeather?.description ?? 'Inconnue';
+      final num temperature = _currentWeather?.temperature ?? 0;
+
+      final plan = await _mistralService.generateIrrigationPlan(
+        location: widget.location,
+        soilType: widget.soilType,
+        crops: widget.cropTypes,
+        soilHumidity: soilHumidity,
+        weatherDescription: weatherDescription,
+        temperature: temperature,
+      );
+
+      // Extraction éventuelle de la ligne technique "JOURS_ARROSAGE_CLES: ..."
+      final regex = RegExp(
+        r'JOURS_ARROSAGE_CLES:\s*([a-z,]+)',
+        caseSensitive: false,
+      );
+      List<String>? waterKeys;
+      final match = regex.firstMatch(plan);
+      if (match != null) {
+        final group = match.group(1);
+        if (group != null) {
+          waterKeys = group
+              .split(',')
+              .map((e) => e.trim().toLowerCase())
+              .where((e) => e.isNotEmpty)
+              .toList();
+        }
+      }
+
+      setState(() {
+        _mistralPlan = plan;
+        _mistralWaterDaysKeys = waterKeys;
+        _isIrrigationPlanActive = true;
+        _irrigationStartDate = _selectedStartDate;
+        _isLoadingMistral = false;
+      });
+
+      NotificationService().scheduleIrrigationReminder(
+        crop: _getCropTranslation(crop),
+        intervalDays: _recommendedInterval,
+        startDate: _selectedStartDate,
+        hour: _reminderTime.hour,
+        minute: _reminderTime.minute,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "✅ Plan d'arrosage IA démarré ! Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}.",
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _mistralError = e.toString();
+        _isLoadingMistral = false;
+      });
+    }
   }
 
   Future<void> _loadWeatherForLocation() async {
@@ -213,6 +290,27 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
         ),
         body: Column(
           children: [
+            if (_isLoadingMistral || _mistralError != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_isLoadingMistral)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (_mistralError != null)
+                      Text(
+                        "Erreur Mistral : $_mistralError",
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                  ],
+                ),
+              ),
             // 🌤️ BANDE MÉTEO
             Container(
               width: double.infinity,
@@ -625,43 +723,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           const SizedBox(height: 15),
           // Puis le plan d'arrosage
           _buildWateringCalendar(weatherData, crop),
-          const SizedBox(height: 15),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: colorScheme.secondary.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
-            child: _buildWateringExplanation(crop),
-          ),
           const SizedBox(height: 20),
           _buildDataSourceWidget(),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: colorScheme.secondary.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              "${_l10n.aiAdviceFor} ${_getCropTranslation(crop)} :\n$recommendation",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -839,8 +902,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                                 color: Colors.black
                                                     .withOpacity(0.25),
                                                 blurRadius: 18,
-                                                offset:
-                                                    const Offset(0, 10),
+                                                offset: const Offset(0, 10),
                                               ),
                                             ],
                                           ),
@@ -857,20 +919,17 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                               SizedBox(height: 12),
                                               Text(
                                                 "Aucun historique pour le moment",
-                                                textAlign:
-                                                    TextAlign.center,
+                                                textAlign: TextAlign.center,
                                                 style: TextStyle(
                                                   color: Colors.white,
-                                                  fontWeight:
-                                                      FontWeight.w600,
+                                                  fontWeight: FontWeight.w600,
                                                   fontSize: 15,
                                                 ),
                                               ),
                                               SizedBox(height: 6),
                                               Text(
                                                 "Les prochaines valeurs reçues seront affichées ici.",
-                                                textAlign:
-                                                    TextAlign.center,
+                                                textAlign: TextAlign.center,
                                                 style: TextStyle(
                                                   color: Colors.white70,
                                                   fontSize: 13,
@@ -895,11 +954,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                             "${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}";
 
                                         return Container(
-                                          padding:
-                                              const EdgeInsets.all(12),
+                                          padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: Colors.white
-                                                .withOpacity(0.06),
+                                            color:
+                                                Colors.white.withOpacity(0.06),
                                             borderRadius:
                                                 BorderRadius.circular(14),
                                             border: Border.all(
@@ -911,36 +969,28 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                             children: [
                                               const Icon(
                                                 Icons.water_drop,
-                                                color:
-                                                    Colors.lightBlueAccent,
+                                                color: Colors.lightBlueAccent,
                                               ),
                                               const SizedBox(width: 10),
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       "${r.value.toStringAsFixed(0)} %",
-                                                      style:
-                                                          const TextStyle(
-                                                        color:
-                                                            Colors.white,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
                                                         fontWeight:
-                                                            FontWeight
-                                                                .bold,
+                                                            FontWeight.bold,
                                                         fontSize: 15,
                                                       ),
                                                     ),
-                                                    const SizedBox(
-                                                        height: 2),
+                                                    const SizedBox(height: 2),
                                                     Text(
                                                       dateStr,
-                                                      style:
-                                                          const TextStyle(
-                                                        color:
-                                                            Colors.white70,
+                                                      style: const TextStyle(
+                                                        color: Colors.white70,
                                                         fontSize: 12,
                                                       ),
                                                     ),
@@ -982,19 +1032,40 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     List<Map<String, dynamic>> weatherData,
     String crop,
   ) {
-    if (crop.toLowerCase().contains("olive")) {
-      _recommendedInterval = 7;
-    } else if (crop.toLowerCase().contains("blé")) {
-      _recommendedInterval = 1;
-    } else if (crop.toLowerCase().contains("tomate")) {
-      _recommendedInterval = 2;
-    } else if (crop.toLowerCase().contains("fraise")) {
-      _recommendedInterval = 1;
-    } else if (crop.toLowerCase().contains("maïs")) {
-      _recommendedInterval = 3;
+    final lowerCrop = crop.toLowerCase();
+    int soilHumidity = _latestSensorData?.soilMoisture?.toInt() ?? 0;
+
+    int baseInterval;
+    if (lowerCrop.contains("olive")) {
+      baseInterval = 7;
+    } else if (lowerCrop.contains("blé")) {
+      baseInterval = 2;
+    } else if (lowerCrop.contains("tomate")) {
+      baseInterval = 2;
+    } else if (lowerCrop.contains("fraise")) {
+      baseInterval = 1;
+    } else if (lowerCrop.contains("maïs")) {
+      baseInterval = 3;
     } else {
-      _recommendedInterval = 2;
+      baseInterval = 2;
     }
+
+    int avgRain = 0;
+    if (weatherData.isNotEmpty) {
+      final totalRain = weatherData
+          .map((d) => d['rain'] as int)
+          .fold<int>(0, (sum, v) => sum + v);
+      avgRain = (totalRain / weatherData.length).round();
+    }
+
+    int interval = baseInterval;
+    if (soilHumidity < 30 && avgRain < 30) {
+      interval = max(1, baseInterval - 1);
+    } else if (soilHumidity > 70 || avgRain > 60) {
+      interval = baseInterval + 1;
+    }
+
+    _recommendedInterval = interval;
 
     // Déterminer si aujourd'hui est un jour d'arrosage lorsque le plan est actif
     bool _isWateringReminderDay = false;
@@ -1351,28 +1422,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 // BOUTON START AMÉLIORÉ
                 GestureDetector(
                   onTap: () {
-                    setState(() {
-                      _isIrrigationPlanActive = true;
-                      _irrigationStartDate = _selectedStartDate;
-                    });
-
-                    // Notification de rappel (Android natif, log sur Web).
-                    NotificationService().scheduleIrrigationReminder(
-                      crop: _getCropTranslation(crop),
-                      intervalDays: _recommendedInterval,
-                      startDate: _selectedStartDate,
-                      hour: _reminderTime.hour,
-                      minute: _reminderTime.minute,
-                    );
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "✅ Plan d'arrosage démarré ! Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}.",
-                        ),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    if (_isLoadingMistral) return;
+                    _startIrrigationPlanWithMistral(crop);
                   },
                   child: Container(
                     width: double.infinity,
@@ -1499,6 +1550,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                         setState(() {
                           _isIrrigationPlanActive = false;
                           _irrigationStartDate = null;
+                          _mistralWaterDaysKeys = null;
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -1549,10 +1601,20 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
                     bool shouldWater = false;
                     if (!isRain) {
-                      if (_recommendedInterval == 1) {
-                        shouldWater = true;
-                      } else if (index % _recommendedInterval == 0) {
-                        shouldWater = true;
+                      final dayKey = day["day"] as String;
+
+                      // Si Mistral a fourni des jours précis, on les utilise
+                      if (_mistralWaterDaysKeys != null &&
+                          _mistralWaterDaysKeys!.isNotEmpty) {
+                        shouldWater = _mistralWaterDaysKeys!
+                            .contains(dayKey.toLowerCase());
+                      } else {
+                        // Sinon, on garde la logique automatique basée sur l'intervalle
+                        if (_recommendedInterval == 1) {
+                          shouldWater = true;
+                        } else if (index % _recommendedInterval == 0) {
+                          shouldWater = true;
+                        }
                       }
                     }
 

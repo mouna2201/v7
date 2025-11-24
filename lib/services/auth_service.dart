@@ -199,6 +199,65 @@ class AuthService {
     }
   }
 
+  // 👨‍🌾 PROFIL DU FERMIER (FORMULAIRE PARCELLE)
+  Future<Map<String, dynamic>?> fetchFarmerProfile() async {
+    try {
+      final token = await getToken();
+      if (token == null) return null;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/farmer/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      print('Erreur fetchFarmerProfile: $e');
+      return null;
+    }
+  }
+
+  Future<bool> updateFarmerProfile({
+    required String parcelLocation,
+    required String soilType,
+    required List<String> crops,
+    required double areaM2,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/farmer/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'parcelLocation': parcelLocation,
+          'soilType': soilType,
+          'crops': crops,
+          'areaM2': areaM2,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erreur updateFarmerProfile: $e');
+      return false;
+    }
+  }
+
   // 📱 MÉTHODES UTILITAIRES
   Future<String?> getToken() async {
     return _inMemoryToken;
