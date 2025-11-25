@@ -220,6 +220,378 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     super.dispose();
   }
 
+  /// Icône météo animée (pluie / nuage / soleil) utilisée dans la bannière météo
+  Widget _buildWeatherAnimatedIcon() {
+    final description = _currentWeather?.description.toLowerCase() ?? '';
+
+    bool isRain = description.contains('pluie') || description.contains('rain');
+    bool isCloudy = description.contains('nuage') ||
+        description.contains('cloud') ||
+        description.contains('couvert') ||
+        description.contains('overcast');
+
+    // Si pas encore de météo chargée, icône neutre
+    if (_currentWeather == null) {
+      return const Icon(
+        Icons.cloud,
+        color: Colors.blue,
+        size: 24,
+      );
+    }
+
+    if (isRain) {
+      // Animation simple de gouttes qui tombent sous un nuage
+      return SizedBox(
+        width: 32,
+        height: 32,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeInOut,
+          onEnd: () {
+            // relance l'animation en reconstruisant
+            if (mounted) {
+              setState(() {});
+            }
+          },
+          builder: (context, value, child) {
+            final dropOffset = 6 * value;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Positioned(
+                  top: 2,
+                  left: 4,
+                  child: Icon(
+                    Icons.cloud,
+                    color: Colors.blue,
+                    size: 24,
+                  ),
+                ),
+                Positioned(
+                  top: 16 + dropOffset,
+                  left: 8,
+                  child: const Icon(
+                    Icons.water_drop,
+                    color: Colors.lightBlueAccent,
+                    size: 14,
+                  ),
+                ),
+                Positioned(
+                  top: 16 + (dropOffset * 0.6),
+                  left: 16,
+                  child: const Icon(
+                    Icons.water_drop,
+                    color: Colors.lightBlueAccent,
+                    size: 12,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    }
+
+    if (isCloudy) {
+      // Nuage qui se déplace légèrement de gauche à droite
+      return SizedBox(
+        width: 32,
+        height: 32,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: -2, end: 2),
+          duration: const Duration(milliseconds: 1200),
+          curve: Curves.easeInOut,
+          onEnd: () {
+            if (mounted) {
+              setState(() {});
+            }
+          },
+          builder: (context, value, child) {
+            return Transform.translate(
+              offset: Offset(value, 0),
+              child: const Icon(
+                Icons.cloud,
+                color: Colors.blue,
+                size: 24,
+              ),
+            );
+          },
+        ),
+      );
+    }
+
+    // Cas par défaut : soleil qui pulse légèrement
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.9, end: 1.1),
+        duration: const Duration(milliseconds: 1000),
+        curve: Curves.easeInOut,
+        onEnd: () {
+          if (mounted) {
+            setState(() {});
+          }
+        },
+        builder: (context, value, child) {
+          return Transform.scale(
+            scale: value,
+            child: const Icon(
+              Icons.wb_sunny,
+              color: Colors.orangeAccent,
+              size: 24,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildWeatherCardWithAnimation(
+    List<Map<String, dynamic>> weatherData,
+  ) {
+    final description = _currentWeather?.description.toLowerCase() ?? '';
+    final bool isRain = description.contains('pluie') || description.contains('rain');
+
+    Widget baseCard = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _isDarkTheme ? const Color(0xFF2A2A2A) : const Color(0xFFE8F5E8),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color:
+              _isDarkTheme ? Colors.grey.shade600 : const Color(0xFF4CAF50),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // En-tête type iOS : ville / grosse température / description / Max-Min
+          Text(
+            _currentWeather!.cityName,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _isDarkTheme ? Colors.white : Colors.black87,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${_currentWeather!.temperature.round()}°',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _isDarkTheme ? Colors.white : Colors.black87,
+              fontSize: 40,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _currentWeather!.description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _isDarkTheme ? Colors.white70 : Colors.black54,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Max: --   Min: --',
+            // À remplacer par de vraies valeurs min/max si ton modèle météo les fournit
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _isDarkTheme ? Colors.white54 : Colors.black45,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (weatherData.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Prévision sur 1 semaine',
+                  style: TextStyle(
+                    color:
+                        _isDarkTheme ? Colors.white70 : const Color(0xFF2E7D32),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showWeeklyWeather = !_showWeeklyWeather;
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                  ),
+                  child: Text(
+                    'Voir la semaine',
+                    style: TextStyle(
+                      color: _isDarkTheme
+                          ? Colors.white
+                          : const Color(0xFF4CAF50),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            if (_showWeeklyWeather) ...[
+              Column(
+                children: weatherData.map((day) {
+                  final int rainValue = day['rain'] as int;
+                  final String temp = day['temp'] as String;
+                  final String minTemp = day['min'] as String;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 3,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _getDayName(day['day'] as String),
+                          style: TextStyle(
+                            color:
+                                _isDarkTheme ? Colors.white54 : Colors.black,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.thermostat,
+                              color: _isDarkTheme
+                                  ? Colors.white
+                                  : const Color(0xFF4CAF50),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$temp / $minTemp',
+                              style: TextStyle(
+                                color: _isDarkTheme
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.water_drop,
+                              color: _isDarkTheme
+                                  ? Colors.white
+                                  : const Color(0xFF4CAF50),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$rainValue%',
+                              style: TextStyle(
+                                color: _isDarkTheme
+                                    ? Colors.white
+                                    : const Color(0xFF4CAF50),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 8),
+              Builder(
+                builder: (context) {
+                  final totalRain = weatherData
+                      .map((d) => d['rain'] as int)
+                      .fold<int>(0, (sum, v) => sum + v);
+                  final avgRain =
+                      (totalRain / weatherData.length).round();
+                  return Text(
+                    'Humidité moyenne de la semaine : $avgRain%',
+                    style: TextStyle(
+                      color:
+                          _isDarkTheme ? Colors.white : Colors.black,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+
+    if (!isRain) {
+      return baseCard;
+    }
+
+    // Ajoute une couche de "pluie" animée par-dessus toute la carte
+    return Stack(
+      children: [
+        baseCard,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeInOut,
+              onEnd: () {
+                if (mounted) {
+                  setState(() {});
+                }
+              },
+              builder: (context, value, child) {
+                final double offsetY = 18 * value;
+                return Opacity(
+                  opacity: 0.7,
+                  child: Transform.translate(
+                    offset: Offset(0, offsetY),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: List.generate(3, (row) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: List.generate(6, (col) {
+                            return Icon(
+                              Icons.water_drop,
+                              size: 10,
+                              color: Colors.white.withOpacity(0.35),
+                            );
+                          }),
+                        );
+                      }),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _initializeMQTT() async {
     _mqttService.onDataReceived = (SensorData data) {
       print(
@@ -356,7 +728,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.cloud, color: Colors.blue, size: 24),
+                      _buildWeatherAnimatedIcon(),
                       const SizedBox(width: 8),
                       Text(
                         "MÉTÉO - ${widget.location.toUpperCase()}",
@@ -424,186 +796,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       ),
                     )
                   else if (_currentWeather != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _isDarkTheme
-                            ? const Color(0xFF2A2A2A)
-                            : const Color(0xFFE8F5E8),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _isDarkTheme
-                              ? Colors.grey.shade600
-                              : const Color(0xFF4CAF50),
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.check_circle,
-                                color: _isDarkTheme
-                                    ? Colors.grey.shade300
-                                    : const Color(0xFF2E7D32),
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  '✅ ${_currentWeather!.cityName}: '
-                                  '${_currentWeather!.temperature.round()}°C - '
-                                  '${_currentWeather!.description}',
-                                  style: TextStyle(
-                                    color: _isDarkTheme
-                                        ? Colors.white
-                                        : const Color(0xFF2E7D32),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          if (weatherData.isNotEmpty) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Prévision sur 1 semaine',
-                                  style: TextStyle(
-                                    color: _isDarkTheme
-                                        ? Colors.white70
-                                        : const Color(0xFF2E7D32),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _showWeeklyWeather = !_showWeeklyWeather;
-                                    });
-                                  },
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Voir la semaine',
-                                    style: TextStyle(
-                                      color: _isDarkTheme
-                                          ? Colors.white
-                                          : const Color(0xFF4CAF50),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            if (_showWeeklyWeather) ...[
-                              Column(
-                                children: weatherData.map((day) {
-                                  final int rainValue = day['rain'] as int;
-                                  final String temp = day['temp'] as String;
-                                  final String minTemp = day['min'] as String;
-
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 3,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          _getDayName(day['day'] as String),
-                                          style: TextStyle(
-                                            color: _isDarkTheme
-                                                ? Colors.white54
-                                                : Colors.black,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.thermostat,
-                                              color: _isDarkTheme
-                                                  ? Colors.white
-                                                  : const Color(0xFF4CAF50),
-                                              size: 16,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '$temp / $minTemp',
-                                              style: TextStyle(
-                                                color: _isDarkTheme
-                                                    ? Colors.white
-                                                    : Colors.black,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.water_drop,
-                                              color: _isDarkTheme
-                                                  ? Colors.white
-                                                  : const Color(0xFF4CAF50),
-                                              size: 16,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '$rainValue%',
-                                              style: TextStyle(
-                                                color: _isDarkTheme
-                                                    ? Colors.white
-                                                    : const Color(0xFF4CAF50),
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 8),
-                              Builder(
-                                builder: (context) {
-                                  final totalRain = weatherData
-                                      .map((d) => d['rain'] as int)
-                                      .fold<int>(0, (sum, v) => sum + v);
-                                  final avgRain =
-                                      (totalRain / weatherData.length).round();
-                                  return Text(
-                                    'Humidité moyenne de la semaine : $avgRain%',
-                                    style: TextStyle(
-                                      color: _isDarkTheme
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ],
-                        ],
-                      ),
-                    ),
+                    _buildWeatherCardWithAnimation(weatherData),
                 ],
               ),
             ),
