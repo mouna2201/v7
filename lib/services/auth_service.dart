@@ -258,6 +258,70 @@ class AuthService {
     }
   }
 
+  // 👤 METTRE À JOUR UN UTILISATEUR (ADMIN)
+  Future<User?> updateUser({
+    required String id,
+    required String name,
+    required String email,
+    String? password,
+  }) async {
+    try {
+      final token = await getToken();
+
+      final body = <String, dynamic>{
+        'name': name,
+        'email': email,
+      };
+      if (password != null && password.isNotEmpty) {
+        body['password'] = password;
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic> && data['user'] is Map<String, dynamic>) {
+          return User.fromJson(data['user'] as Map<String, dynamic>);
+        }
+        if (data is Map<String, dynamic>) {
+          return User.fromJson(data);
+        }
+      }
+
+      return null;
+    } catch (e) {
+      print('Erreur updateUser: $e');
+      return null;
+    }
+  }
+
+  // 🗑️ SUPPRIMER UN UTILISATEUR (ADMIN)
+  Future<bool> deleteUser(String id) async {
+    try {
+      final token = await getToken();
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/users/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      print('Erreur deleteUser: $e');
+      return false;
+    }
+  }
+
   // 📱 MÉTHODES UTILITAIRES
   Future<String?> getToken() async {
     return _inMemoryToken;

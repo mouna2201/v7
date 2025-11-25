@@ -20,12 +20,14 @@ class IrrigationPlanScreen extends StatefulWidget {
   final String location;
   final String soilType;
   final List<String> cropTypes;
+  final bool isSupervisor;
 
   const IrrigationPlanScreen({
     super.key,
     required this.location,
     required this.soilType,
     required this.cropTypes,
+    this.isSupervisor = false,
   });
 
   @override
@@ -56,6 +58,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   int _recommendedInterval = 2; // Intervalle recommandé par l'API
   TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
   DateTime _selectedStartDate = DateTime.now();
+
+  // Couleur principale du thème du plan d'arrosage (bleu pour tout le monde)
+  Color get _primaryColor => const Color(0xFF1976D2);
 
   String _formatTimeOfDay(TimeOfDay time) {
     final h = time.hour.toString().padLeft(2, '0');
@@ -355,7 +360,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     final bool isRain = description.contains('pluie') || description.contains('rain');
 
     Widget baseCard = Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: _isDarkTheme ? const Color(0xFF2A2A2A) : const Color(0xFFE8F5E8),
         borderRadius: BorderRadius.circular(8),
@@ -374,27 +379,27 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _isDarkTheme ? Colors.white : Colors.black87,
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             '${_currentWeather!.temperature.round()}°',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _isDarkTheme ? Colors.white : Colors.black87,
-              fontSize: 40,
+              fontSize: 32,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             _currentWeather!.description,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _isDarkTheme ? Colors.white70 : Colors.black54,
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -405,10 +410,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _isDarkTheme ? Colors.white54 : Colors.black45,
-              fontSize: 12,
+              fontSize: 11,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           if (weatherData.isNotEmpty) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -627,14 +632,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               ),
             );
           },
-          backgroundColor: const Color(0xFF4CAF50),
+          backgroundColor: _primaryColor,
           child: const Icon(Icons.edit_location_alt, color: Colors.white),
           tooltip: 'Modifier les détails de la parcelle',
         ),
         backgroundColor: _isDarkTheme ? Colors.black : const Color(0xFFF5F5F5),
         appBar: AppBar(
           backgroundColor:
-              _isDarkTheme ? const Color(0xFF1A1A1A) : const Color(0xFF4CAF50),
+              _isDarkTheme ? const Color(0xFF1A1A1A) : _primaryColor,
           foregroundColor: Colors.white,
           centerTitle: true,
           title: Text(
@@ -711,7 +716,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 border: Border.all(
                   color: _isDarkTheme
                       ? Colors.grey.withOpacity(0.3)
-                      : const Color(0xFF4CAF50).withOpacity(0.3),
+                      : _primaryColor.withOpacity(0.3),
                   width: 1,
                 ),
                 boxShadow: [
@@ -732,15 +737,17 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       const SizedBox(width: 8),
                       Text(
                         "MÉTÉO - ${widget.location.toUpperCase()}",
-                        style: const TextStyle(
-                          color: Colors.blue,
+                        style: TextStyle(
+                          color: widget.isSupervisor
+                              ? const Color(0xFF1976D2)
+                              : Colors.blue,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   if (_isLoadingWeather)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -895,7 +902,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       style: TextStyle(
                         color: _isDarkTheme
                             ? Colors.white
-                            : const Color(0xFF2E7D32),
+                            : _primaryColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -906,7 +913,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       style: TextStyle(
                         color: _isDarkTheme
                             ? Colors.white70
-                            : const Color(0xFF2E7D32).withOpacity(0.7),
+                            : _primaryColor.withOpacity(0.7),
                         fontSize: 12,
                       ),
                     ),
@@ -1297,7 +1304,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
         Text(
           "Plan d'arrosage",
           style: TextStyle(
-            color: _isDarkTheme ? Colors.white : const Color(0xFF2E7D32),
+            color: _isDarkTheme ? Colors.white : _primaryColor,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -1339,18 +1346,18 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           ),
         ],
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
 
         // CALENDRIER DU PLAN (toujours affiché)
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: _isDarkTheme ? const Color(0xFF1A1A1A) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _isDarkTheme
-                    ? Colors.green.withOpacity(0.3)
-                    : const Color(0xFF4CAF50).withOpacity(0.3),
+                    ? _primaryColor.withOpacity(0.3)
+                    : _primaryColor.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -1368,14 +1375,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                               : Icons.calendar_today,
                           color: _isIrrigationPlanActive
                               ? (_isDarkTheme
-                                  ? Colors.green.shade300
-                                  : const Color(0xFF4CAF50))
+                                  ? _primaryColor.withOpacity(0.8)
+                                  : _primaryColor)
                               : (_isDarkTheme
                                   ? Colors.white70
-                                  : const Color(0xFF4CAF50)),
-                          size: 20,
+                                  : _primaryColor),
+                          size: 18,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           _isIrrigationPlanActive
                               ? "Plan actif"
@@ -1383,13 +1390,13 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                           style: TextStyle(
                             color: _isIrrigationPlanActive
                                 ? (_isDarkTheme
-                                    ? Colors.green.shade300
-                                    : const Color(0xFF4CAF50))
+                                    ? _primaryColor.withOpacity(0.8)
+                                    : _primaryColor)
                                 : (_isDarkTheme
                                     ? Colors.white70
-                                    : const Color(0xFF4CAF50)),
+                                    : _primaryColor),
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
                         ),
                       ],
@@ -1459,7 +1466,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
                 // Calendrier des 7 prochains jours
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: weatherData.asMap().entries.map((entry) {
                     final index = entry.key;
                     final day = entry.value;
@@ -1524,33 +1531,33 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                                 color: _isDarkTheme
                                     ? Colors.white54
                                     : const Color(0xFF757575),
-                                fontSize: 12,
+                                fontSize: 10,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 1),
                             Icon(
                               shouldWater ? Icons.water_drop : Icons.cloud,
                               color: shouldWater
                                   ? (_isDarkTheme
                                       ? Colors.white
-                                      : const Color(0xFF4CAF50))
+                                      : _primaryColor)
                                   : (_isDarkTheme
                                       ? Colors.white70
                                       : const Color(0xFF2196F3)),
-                              size: 22,
+                              size: 16,
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 1),
                             Text(
                               shouldWater ? _l10n.waterToday : _l10n.rest,
                               style: TextStyle(
                                 color: shouldWater
                                     ? (_isDarkTheme
                                         ? Colors.white
-                                        : const Color(0xFF4CAF50))
+                                        : _primaryColor)
                                     : (_isDarkTheme
                                         ? Colors.white54
                                         : const Color(0xFF757575)),
-                                fontSize: 11,
+                                fontSize: 9,
                               ),
                             ),
                           ],
@@ -1574,12 +1581,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               borderRadius: BorderRadius.circular(18),
               gradient: _isDarkTheme
                   ? const LinearGradient(
-                      colors: [Color(0xFF1A1A1A), Color(0xFF263238)],
+                      colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     )
                   : const LinearGradient(
-                      colors: [Color(0xFFF5FFF7), Color(0xFFE8F5E9)],
+                      colors: [Color(0xFFE3F2FD), Color(0xFFE8F5FE)],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
@@ -1592,8 +1599,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               ],
               border: Border.all(
                 color: _isDarkTheme
-                    ? Colors.green.withOpacity(0.25)
-                    : const Color(0xFF4CAF50).withOpacity(0.25),
+                    ? _primaryColor.withOpacity(0.25)
+                    : _primaryColor.withOpacity(0.25),
                 width: 1,
               ),
             ),
@@ -1627,8 +1634,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       boxShadow: [
                         BoxShadow(
                           color: (_isDarkTheme
-                                  ? Colors.greenAccent
-                                  : const Color(0xFF4CAF50))
+                                  ? Colors.lightBlueAccent
+                                  : _primaryColor)
                               .withOpacity(0.4),
                           blurRadius: 14,
                           spreadRadius: 1,
@@ -1672,8 +1679,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: (_isDarkTheme
-                              ? Colors.greenAccent
-                              : const Color(0xFF4CAF50))
+                              ? Colors.lightBlueAccent
+                              : _primaryColor)
                           .withOpacity(0.4),
                     ),
                   ),
@@ -1682,8 +1689,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       Icon(
                         Icons.event,
                         color: _isDarkTheme
-                            ? Colors.greenAccent
-                            : const Color(0xFF4CAF50),
+                            ? Colors.lightBlueAccent
+                            : _primaryColor,
                         size: 20,
                       ),
                       const SizedBox(width: 10),
@@ -1795,15 +1802,15 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       borderRadius: BorderRadius.circular(30),
                       gradient: const LinearGradient(
                         colors: [
-                          Color(0xFF43A047),
-                          Color(0xFF66BB6A),
+                          Color(0xFF1976D2),
+                          Color(0xFF42A5F5),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.35),
+                          color: const Color(0xFF1976D2).withOpacity(0.35),
                           blurRadius: 14,
                           offset: const Offset(0, 6),
                         ),

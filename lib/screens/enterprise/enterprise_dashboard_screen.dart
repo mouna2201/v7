@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
 import 'enterprise_add_farmer_screen.dart';
+import 'enterprise_edit_farmer_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
@@ -334,6 +335,123 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                                                       ),
                                                     ],
                                                   ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    IconButton(
+                                                      tooltip: 'Modifier',
+                                                      icon: const Icon(
+                                                        Icons.edit,
+                                                        color: Colors.white70,
+                                                        size: 20,
+                                                      ),
+                                                      onPressed: () async {
+                                                        final updatedFarmer =
+                                                            await Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (_) =>
+                                                                EnterpriseEditFarmerScreen(
+                                                              farmer: farmer,
+                                                            ),
+                                                          ),
+                                                        );
+
+                                                        if (updatedFarmer
+                                                            is User) {
+                                                          setState(() {
+                                                            _farmers[index] =
+                                                                updatedFarmer;
+                                                          });
+                                                        }
+                                                      },
+                                                    ),
+                                                    IconButton(
+                                                      tooltip: 'Supprimer',
+                                                      icon: const Icon(
+                                                        Icons.delete,
+                                                        color: Colors.redAccent,
+                                                        size: 20,
+                                                      ),
+                                                      onPressed: () async {
+                                                        final confirm =
+                                                            await showDialog<bool>(
+                                                          context: context,
+                                                          builder: (ctx) {
+                                                            return AlertDialog(
+                                                              title: const Text(
+                                                                  'Supprimer le fermier ?'),
+                                                              content: Text(
+                                                                'Voulez-vous vraiment supprimer ${farmer.name} ? Cette action est irréversible.',
+                                                              ),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.pop(
+                                                                          ctx,
+                                                                          false),
+                                                                  child: const Text(
+                                                                      'Annuler'),
+                                                                ),
+                                                                TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.pop(
+                                                                          ctx,
+                                                                          true),
+                                                                  child: const Text(
+                                                                    'Supprimer',
+                                                                    style: TextStyle(
+                                                                        color: Colors
+                                                                            .redAccent),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+
+                                                        if (confirm != true) {
+                                                          return;
+                                                        }
+
+                                                        final success =
+                                                            await _authService
+                                                                .deleteUser(
+                                                                    farmer.id);
+                                                        if (!mounted) return;
+
+                                                        if (success) {
+                                                          setState(() {
+                                                            _farmers.removeAt(
+                                                                index);
+                                                          });
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text(
+                                                                  'Fermier supprimé'),
+                                                              backgroundColor:
+                                                                  Colors.green,
+                                                            ),
+                                                          );
+                                                        } else {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text(
+                                                                  'Erreur lors de la suppression'),
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
+                                                          );
+                                                        }
+                                                      },
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),

@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import 'enterprise_dashboard_screen.dart';
 import 'enterprise_add_farmer_screen.dart';
 import 'enterprise_form_screen.dart';
+import '../farmer/irrigation_plan_screen.dart';
 import 'register_screen.dart'; // 👈 ajouté pour l’inscription
 
 class LoginScreen extends StatefulWidget {
@@ -82,10 +83,19 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const EnterpriseDashboardScreen()),
       );
     } else {
-      // Superviseur : aller vers le formulaire d'entreprise
+      // Superviseur : aller directement vers le plan d'irrigation
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const EnterpriseFormScreen()),
+        MaterialPageRoute(
+          builder: (_) => IrrigationPlanScreen(
+            // Pour le superviseur, on ouvre le même écran que le fermier
+            // avec une localisation fixe (par ex. "bizerte") pour que la météo fonctionne.
+            location: 'bizerte',
+            soilType: 'sableux',
+            cropTypes: const ['olive'],
+            isSupervisor: true,
+          ),
+        ),
       );
     }
   }
