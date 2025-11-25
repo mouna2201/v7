@@ -6,6 +6,7 @@ import '../../services/mqtt_service.dart';
 import '../../services/weather_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/mistral_service.dart';
+import 'farmer_form_screen.dart';
 
 import '../../models/sensor_data.dart';
 import '../../models/weather_data.dart';
@@ -245,6 +246,19 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     return Theme(
       data: theme,
       child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FarmerFormScreen(farmerName: 'Agriculteur'),
+              ),
+            );
+          },
+          backgroundColor: const Color(0xFF4CAF50),
+          child: const Icon(Icons.edit_location_alt, color: Colors.white),
+          tooltip: 'Modifier les détails de la parcelle',
+        ),
         backgroundColor: _isDarkTheme ? Colors.black : const Color(0xFFF5F5F5),
         appBar: AppBar(
           backgroundColor:
@@ -1132,384 +1146,13 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           ),
         ],
 
-        // RECOMMANDATIONS API
+        const SizedBox(height: 16),
+
+        // CALENDRIER DU PLAN (toujours affiché)
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: _isDarkTheme
-                ? const Color(0xFF2A2A2A)
-                : const Color(0xFFE3F2FD),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _isDarkTheme
-                  ? Colors.blue.withOpacity(0.3)
-                  : Colors.blue.withOpacity(0.5),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.lightbulb_outline,
-                    color: _isDarkTheme
-                        ? Colors.blue.shade300
-                        : Colors.blue.shade700,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Recommandation IA",
-                    style: TextStyle(
-                      color: _isDarkTheme
-                          ? Colors.blue.shade300
-                          : Colors.blue.shade700,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Pour ${_getCropTranslation(crop)}, il est recommandé d'arroser tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}.",
-                style: TextStyle(
-                  color: _isDarkTheme ? Colors.white70 : Colors.black87,
-                  fontSize: 13,
-                ),
-              ),
-              if (_currentWeather != null) ...[
-                const SizedBox(height: 6),
-                Text(
-                  "Conditions actuelles: ${_currentWeather!.temperature.round()}°C, ${_currentWeather!.description}",
-                  style: TextStyle(
-                    color: _isDarkTheme ? Colors.white54 : Colors.black54,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // CONTRÔLES UTILISATEUR
-        if (!_isIrrigationPlanActive)
-          // Plan pas encore démarré
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: _isDarkTheme
-                  ? const LinearGradient(
-                      colors: [Color(0xFF1A1A1A), Color(0xFF263238)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    )
-                  : const LinearGradient(
-                      colors: [Color(0xFFF5FFF7), Color(0xFFE8F5E9)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-              border: Border.all(
-                color: _isDarkTheme
-                    ? Colors.green.withOpacity(0.25)
-                    : const Color(0xFF4CAF50).withOpacity(0.25),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Icône play cerclée plus créative
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.95, end: 1.05),
-                  duration: const Duration(milliseconds: 1200),
-                  curve: Curves.easeInOut,
-                  builder: (context, value, child) {
-                    return Transform.scale(scale: value, child: child);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: _isDarkTheme
-                            ? [
-                                Colors.green.shade400,
-                                Colors.green.shade200,
-                              ]
-                            : const [
-                                Color(0xFF4CAF50),
-                                Color(0xFF8BC34A),
-                              ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (_isDarkTheme
-                                  ? Colors.greenAccent
-                                  : const Color(0xFF4CAF50))
-                              .withOpacity(0.4),
-                          blurRadius: 14,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  "Prêt à commencer l'arrosage ?",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _isDarkTheme ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 17,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  "Vous décidez quand démarrer le plan d'arrosage recommandé.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _isDarkTheme ? Colors.white70 : Colors.black54,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Sélection du jour de début d'arrosage
-                Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(_isDarkTheme ? 0.06 : 0.9),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: (_isDarkTheme
-                              ? Colors.greenAccent
-                              : const Color(0xFF4CAF50))
-                          .withOpacity(0.4),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.event,
-                        color: _isDarkTheme
-                            ? Colors.greenAccent
-                            : const Color(0xFF4CAF50),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          "Début du plan : ${_selectedStartDate.day.toString().padLeft(2, '0')}/${_selectedStartDate.month.toString().padLeft(2, '0')}/${_selectedStartDate.year}",
-                          style: TextStyle(
-                            color: _isDarkTheme ? Colors.white : Colors.black87,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          final today = DateTime.now();
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: _selectedStartDate,
-                            firstDate: DateTime(today.year - 1),
-                            lastDate: DateTime(today.year + 2),
-                          );
-                          if (picked != null) {
-                            setState(() {
-                              _selectedStartDate = DateTime(
-                                picked.year,
-                                picked.month,
-                                picked.day,
-                              );
-                            });
-                          }
-                        },
-                        child: const Text(
-                          "Modifier",
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Sélection de l'heure de rappel
-                Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(_isDarkTheme ? 0.06 : 0.9),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: (_isDarkTheme
-                              ? Colors.greenAccent
-                              : const Color(0xFF4CAF50))
-                          .withOpacity(0.4),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        color: _isDarkTheme
-                            ? Colors.greenAccent
-                            : const Color(0xFF4CAF50),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          "Heure du rappel : ${_formatTimeOfDay(_reminderTime)}",
-                          style: TextStyle(
-                            color: _isDarkTheme ? Colors.white : Colors.black87,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          final picked = await showTimePicker(
-                            context: context,
-                            initialTime: _reminderTime,
-                          );
-                          if (picked != null) {
-                            setState(() {
-                              _reminderTime = picked;
-                            });
-                          }
-                        },
-                        child: const Text(
-                          "Modifier",
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // BOUTON START AMÉLIORÉ
-                GestureDetector(
-                  onTap: () {
-                    if (_isLoadingMistral) return;
-                    _startIrrigationPlanWithMistral(crop);
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF43A047),
-                          Color(0xFF66BB6A),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.withOpacity(0.35),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0.9, end: 1.05),
-                          duration: const Duration(milliseconds: 800),
-                          curve: Curves.easeInOut,
-                          builder: (context, value, child) {
-                            return Transform.scale(
-                              scale: value,
-                              child: child,
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.15),
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow_rounded,
-                              color: Colors.white,
-                              size: 26,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Démarrer le plan d'arrosage",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                            Text(
-                              "Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          // Plan actif - Afficher le calendrier
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _isDarkTheme ? const Color(0xFF1A1A1A) : Colors.white,
+            color: _isDarkTheme ? const Color(0xFF1A1A1A) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _isDarkTheme
@@ -1527,56 +1170,86 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     Row(
                       children: [
                         Icon(
-                          Icons.check_circle,
-                          color: _isDarkTheme
-                              ? Colors.green.shade300
-                              : const Color(0xFF4CAF50),
+                          _isIrrigationPlanActive
+                              ? Icons.check_circle
+                              : Icons.calendar_today,
+                          color: _isIrrigationPlanActive
+                              ? (_isDarkTheme
+                                  ? Colors.green.shade300
+                                  : const Color(0xFF4CAF50))
+                              : (_isDarkTheme
+                                  ? Colors.white70
+                                  : const Color(0xFF4CAF50)),
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          "Plan actif",
+                          _isIrrigationPlanActive
+                              ? "Plan actif"
+                              : "Plan proposé",
                           style: TextStyle(
-                            color: _isDarkTheme
-                                ? Colors.green.shade300
-                                : const Color(0xFF4CAF50),
+                            color: _isIrrigationPlanActive
+                                ? (_isDarkTheme
+                                    ? Colors.green.shade300
+                                    : const Color(0xFF4CAF50))
+                                : (_isDarkTheme
+                                    ? Colors.white70
+                                    : const Color(0xFF4CAF50)),
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
                         ),
                       ],
                     ),
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _isIrrigationPlanActive = false;
-                          _irrigationStartDate = null;
-                          _mistralWaterDaysKeys = null;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("⏹️ Plan d'arrosage arrêté"),
-                            backgroundColor: Colors.orange,
+                    if (_isIrrigationPlanActive)
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _isIrrigationPlanActive = false;
+                            _irrigationStartDate = null;
+                            _mistralWaterDaysKeys = null;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("⏹️ Plan d'arrosage arrêté"),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: _isDarkTheme
+                              ? Colors.red.withOpacity(0.15)
+                              : Colors.red.withOpacity(0.08),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
                           ),
-                        );
-                      },
-                      icon: Icon(
-                        Icons.stop,
-                        color: _isDarkTheme
-                            ? Colors.orange.shade300
-                            : Colors.orange.shade700,
-                        size: 16,
-                      ),
-                      label: Text(
-                        "Arrêter",
-                        style: TextStyle(
-                          color: _isDarkTheme
-                              ? Colors.orange.shade300
-                              : Colors.orange.shade700,
-                          fontSize: 12,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: _isDarkTheme
+                                  ? Colors.redAccent
+                                  : Colors.red,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        icon: Icon(
+                          Icons.stop_circle,
+                          color:
+                              _isDarkTheme ? Colors.redAccent : Colors.red,
+                          size: 18,
+                        ),
+                        label: Text(
+                          "Arrêter le plan",
+                          style: TextStyle(
+                            color:
+                                _isDarkTheme ? Colors.redAccent : Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -1692,6 +1365,307 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       ),
                     );
                   }).toList(),
+                ),
+              ],
+            ),
+          ),
+
+        const SizedBox(height: 16),
+
+        // CONTRÔLES UTILISATEUR AFFICHÉS APRÈS LE PLAN
+        if (!_isIrrigationPlanActive)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: _isDarkTheme
+                  ? const LinearGradient(
+                      colors: [Color(0xFF1A1A1A), Color(0xFF263238)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    )
+                  : const LinearGradient(
+                      colors: [Color(0xFFF5FFF7), Color(0xFFE8F5E9)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+              border: Border.all(
+                color: _isDarkTheme
+                    ? Colors.green.withOpacity(0.25)
+                    : const Color(0xFF4CAF50).withOpacity(0.25),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.95, end: 1.05),
+                  duration: const Duration(milliseconds: 1200),
+                  curve: Curves.easeInOut,
+                  builder: (context, value, child) {
+                    return Transform.scale(scale: value, child: child);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: _isDarkTheme
+                            ? [
+                                Colors.green.shade400,
+                                Colors.green.shade200,
+                              ]
+                            : const [
+                                Color(0xFF4CAF50),
+                                Color(0xFF8BC34A),
+                              ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (_isDarkTheme
+                                  ? Colors.greenAccent
+                                  : const Color(0xFF4CAF50))
+                              .withOpacity(0.4),
+                          blurRadius: 14,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  "Prêt à commencer l'arrosage ?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _isDarkTheme ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Vous décidez quand démarrer le plan d'arrosage recommandé.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _isDarkTheme ? Colors.white70 : Colors.black54,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(_isDarkTheme ? 0.06 : 0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: (_isDarkTheme
+                              ? Colors.greenAccent
+                              : const Color(0xFF4CAF50))
+                          .withOpacity(0.4),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.event,
+                        color: _isDarkTheme
+                            ? Colors.greenAccent
+                            : const Color(0xFF4CAF50),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Début du plan : ${_selectedStartDate.day.toString().padLeft(2, '0')}/${_selectedStartDate.month.toString().padLeft(2, '0')}/${_selectedStartDate.year}",
+                          style: TextStyle(
+                            color: _isDarkTheme ? Colors.white : Colors.black87,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final today = DateTime.now();
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _selectedStartDate,
+                            firstDate: DateTime(today.year - 1),
+                            lastDate: DateTime(today.year + 2),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _selectedStartDate = DateTime(
+                                picked.year,
+                                picked.month,
+                                picked.day,
+                              );
+                            });
+                          }
+                        },
+                        child: const Text(
+                          "Modifier",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(_isDarkTheme ? 0.06 : 0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: (_isDarkTheme
+                              ? Colors.greenAccent
+                              : const Color(0xFF4CAF50))
+                          .withOpacity(0.4),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        color: _isDarkTheme
+                            ? Colors.greenAccent
+                            : const Color(0xFF4CAF50),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Heure du rappel : ${_formatTimeOfDay(_reminderTime)}",
+                          style: TextStyle(
+                            color: _isDarkTheme ? Colors.white : Colors.black87,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: _reminderTime,
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _reminderTime = picked;
+                            });
+                          }
+                        },
+                        child: const Text(
+                          "Modifier",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () {
+                    if (_isLoadingMistral) return;
+                    _startIrrigationPlanWithMistral(crop);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF43A047),
+                          Color(0xFF66BB6A),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.35),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.9, end: 1.05),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeInOut,
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: child,
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.15),
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Démarrer le plan d'arrosage",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              "Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}",
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

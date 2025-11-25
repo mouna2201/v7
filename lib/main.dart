@@ -2,12 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'presentation/providers/language_provider.dart';
 import 'services/app_initializer.dart';
 import 'screens/welcome/welcome_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'services/notification_service.dart';
+import 'providers/parcel_provider.dart';
 
 /// Point d'entrée de l'application
 Future<void> main() async {
@@ -15,8 +17,14 @@ Future<void> main() async {
   await NotificationService().init();
 
   runApp(
-    const ProviderScope(
-      child: AgroApp(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ParcelProvider()),
+        // Ajoutez d'autres providers ici si nécessaire
+      ],
+      child: const ProviderScope(
+        child: AgroApp(),
+      ),
     ),
   );
 }
