@@ -13,6 +13,7 @@ import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/animated_humidity_circle.dart';
 import '../welcome/welcome_screen.dart';
+import 'watering_day_detail_screen.dart';
 
 class IrrigationPlanScreen extends StatefulWidget {
   final String location;
@@ -1596,6 +1597,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                   children: weatherData.asMap().entries.map((entry) {
                     final index = entry.key;
                     final day = entry.value;
+                    final String dayKey = day["day"] as String;
                     final int rainValue = day["rain"] as int;
                     bool isRain = rainValue > 40;
 
@@ -1631,44 +1633,62 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                           ),
                         );
                       },
-                      child: Column(
-                        children: [
-                          Text(
-                            _getDayShortName((day["day"] as String)),
-                            style: TextStyle(
-                              color: _isDarkTheme
-                                  ? Colors.white54
-                                  : const Color(0xFF757575),
-                              fontSize: 12,
+                      child: GestureDetector(
+                        onTap: shouldWater
+                            ? () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => WateringDayDetailScreen(
+                                      dayKey: dayKey,
+                                      crop: _getCropTranslation(crop),
+                                      temperatureLabel:
+                                          day["temp"] as String? ?? "-",
+                                      rainPercent: rainValue,
+                                      mistralPlan: _mistralPlan ?? "",
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null,
+                        child: Column(
+                          children: [
+                            Text(
+                              _getDayShortName((day["day"] as String)),
+                              style: TextStyle(
+                                color: _isDarkTheme
+                                    ? Colors.white54
+                                    : const Color(0xFF757575),
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Icon(
-                            shouldWater ? Icons.water_drop : Icons.cloud,
-                            color: shouldWater
-                                ? (_isDarkTheme
-                                    ? Colors.white
-                                    : const Color(0xFF4CAF50))
-                                : (_isDarkTheme
-                                    ? Colors.white70
-                                    : const Color(0xFF2196F3)),
-                            size: 22,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            shouldWater ? _l10n.waterToday : _l10n.rest,
-                            style: TextStyle(
+                            const SizedBox(height: 4),
+                            Icon(
+                              shouldWater ? Icons.water_drop : Icons.cloud,
                               color: shouldWater
                                   ? (_isDarkTheme
                                       ? Colors.white
                                       : const Color(0xFF4CAF50))
                                   : (_isDarkTheme
-                                      ? Colors.white54
-                                      : const Color(0xFF757575)),
-                              fontSize: 11,
+                                      ? Colors.white70
+                                      : const Color(0xFF2196F3)),
+                              size: 22,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 2),
+                            Text(
+                              shouldWater ? _l10n.waterToday : _l10n.rest,
+                              style: TextStyle(
+                                color: shouldWater
+                                    ? (_isDarkTheme
+                                        ? Colors.white
+                                        : const Color(0xFF4CAF50))
+                                    : (_isDarkTheme
+                                        ? Colors.white54
+                                        : const Color(0xFF757575)),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }).toList(),

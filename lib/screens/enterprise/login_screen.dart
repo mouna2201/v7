@@ -99,118 +99,117 @@ class _LoginScreenState extends State<LoginScreen> {
     final primary = theme.colorScheme.primary;
     final lightBg = theme.scaffoldBackgroundColor;
 
-    return Theme(
-      data: theme,
-      child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primary, lightBg], // bleu foncé → bleu très clair
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+    // Design différent pour Admin (plein écran dégradé) et Superviseur
+    if (isAdmin) {
+      return Theme(
+        data: theme,
+        child: Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [primary, lightBg], // bleu foncé → bleu très clair
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
-          ),
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 60),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(16),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.business,
+                            color: theme.colorScheme.primary,
+                            size: 26,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.business,
-                          color: theme.colorScheme.primary,
-                          size: 26,
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Entreprise',
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Entreprise',
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Connexion ${isAdmin ? 'Admin 🧑‍💼' : 'Superviseur 👨‍🌾'}",
-                    style: const TextStyle(
-                      fontSize: 26,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    isAdmin
-                        ? "Accédez au tableau de bord de votre entreprise"
-                        : "Connectez-vous pour gérer vos fermiers",
-                    style: const TextStyle(color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Champs Email
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.15),
-                      labelText: 'Email',
-                      labelStyle: const TextStyle(color: Colors.white),
-                      prefixIcon: const Icon(Icons.email, color: Colors.white),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                    const SizedBox(height: 20),
+                    Text(
+                      "Connexion Admin",
+                      style: const TextStyle(
+                        fontSize: 26,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Champ mot de passe
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.15),
-                      labelText: 'Mot de passe',
-                      labelStyle: const TextStyle(color: Colors.white),
-                      prefixIcon: const Icon(Icons.lock, color: Colors.white),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Accédez au tableau de bord de votre entreprise",
+                      style: TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center,
                     ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(height: 30),
+                    const SizedBox(height: 40),
 
-                  _loading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : CustomButton(
-                          text: 'Se connecter',
-                          onTap: _login,
+                    // Champs Email
+                    TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.15),
+                        labelText: 'Email',
+                        labelStyle: const TextStyle(color: Colors.white),
+                        prefixIcon:
+                            const Icon(Icons.email, color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 20),
 
-                  const SizedBox(height: 20),
+                    // Champ mot de passe
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.15),
+                        labelText: 'Mot de passe',
+                        labelStyle: const TextStyle(color: Colors.white),
+                        prefixIcon: const Icon(Icons.lock, color: Colors.white),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 30),
 
-                  // ✅ bouton S’inscrire (seulement pour Admin)
-                  if (isAdmin)
+                    _loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : CustomButton(
+                            text: 'Se connecter',
+                            onTap: _login,
+                          ),
+
+                    const SizedBox(height: 20),
+
+                    // bouton S’inscrire (seulement pour Admin)
                     TextButton(
                       onPressed: () {
                         Navigator.push(
@@ -228,7 +227,179 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Design superviseur : même structure que le login fermier, mais en bleu
+    return Theme(
+      data: theme,
+      child: Scaffold(
+        backgroundColor: lightBg,
+        appBar: AppBar(
+          backgroundColor: primary,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          centerTitle: true,
+          title: const Text(
+            'Connexion Superviseur',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                primary.withOpacity(0.15),
+                lightBg,
+              ],
+            ),
+          ),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: primary),
+                          ),
+                          child: Icon(
+                            Icons.supervisor_account,
+                            color: primary,
+                            size: 32,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Bienvenue Superviseur',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: primary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Connectez-vous pour suivre les fermiers et leurs parcelles.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextField(
+                            controller: _emailController,
+                            style: const TextStyle(color: Colors.black87),
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              labelStyle:
+                                  TextStyle(color: Colors.grey.shade700),
+                              prefixIcon: Icon(
+                                Icons.email_outlined,
+                                color: primary,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide:
+                                    BorderSide(color: primary, width: 1.6),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            style: const TextStyle(color: Colors.black87),
+                            decoration: InputDecoration(
+                              labelText: 'Mot de passe',
+                              labelStyle:
+                                  TextStyle(color: Colors.grey.shade700),
+                              prefixIcon: Icon(
+                                Icons.lock_outline,
+                                color: primary,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide:
+                                    BorderSide(color: primary, width: 1.6),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          _loading
+                              ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                              : CustomButton(
+                                  text: 'Se connecter',
+                                  onTap: _login,
+                                ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

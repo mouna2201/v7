@@ -83,9 +83,28 @@ Très important :
     if (data['choices'] is List && data['choices'].isNotEmpty) {
       final choice = data['choices'][0] as Map<String, dynamic>;
       final message = choice['message'] as Map<String, dynamic>;
-      final content = message['content'];
-      if (content is String && content.isNotEmpty) {
-        return content;
+      final dynamic rawContent = message['content'];
+
+      // L'API Mistral renvoie généralement "content" comme une liste de blocs
+      // [{"type": "text", "text": "..."}, ...]. On reconstruit donc le texte.
+      if (rawContent is List) {
+        final buffer = StringBuffer();
+        for (final part in rawContent) {
+          if (part is Map<String, dynamic>) {
+            final text = part['text'];
+            if (text is String && text.isNotEmpty) {
+              if (buffer.isNotEmpty) buffer.writeln();
+              buffer.write(text);
+            }
+          }
+        }
+        final result = buffer.toString();
+        if (result.isNotEmpty) {
+          return result;
+        }
+      } else if (rawContent is String && rawContent.isNotEmpty) {
+        // Compatibilité si jamais l'API renvoie encore directement une chaîne
+        return rawContent;
       }
     }
 
