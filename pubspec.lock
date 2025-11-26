@@ -345,10 +345,10 @@ packages:
     dependency: "direct main"
     description:
       name: mqtt_client
-      sha256: "3b3f406bf804df7de909f2c5098fba1a7d87fc4d86f01b6a12dc8d1b24be221f"
+      sha256: ba10ec490ded55dc4e77bbc992529d823fb15d0d5ec68c2895f960312060c541
       url: "https://pub.dev"
     source: hosted
-    version: "10.11.1"
+    version: "9.8.1"
   nested:
     dependency: transitive
     description:
