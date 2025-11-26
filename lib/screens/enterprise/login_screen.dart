@@ -54,11 +54,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final user = result['user'];
 
-    // Vérifie si l'utilisateur correspond au rôle admin
+    // Vérifie si l'utilisateur correspond au rôle cible
     if (widget.role == "admin" && user.role != "admin") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Seul un admin peut se connecter ici"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (widget.role == "superviseur" && user.role != "farmer") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Seuls les comptes fermier/superviseur créés par l'admin peuvent se connecter ici"),
           backgroundColor: Colors.red,
         ),
       );
@@ -76,23 +86,64 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
 
-    // Redirection selon le rôle
+    // Redirection selon le rôle depuis l'écran de login
     if (widget.role == "admin") {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const EnterpriseDashboardScreen()),
       );
     } else {
-      // Superviseur : aller directement vers le plan d'irrigation
+      // Superviseur : charger les données de parcelle associées au compte fermier
+      Map<String, dynamic>? profile;
+      try {
+        profile = await _authService.fetchFarmerProfile();
+      } catch (_) {
+        profile = null;
+      }
+
+      final location = (profile?['parcelLocation'] as String?)?.trim();
+      final soilType = (profile?['soilType'] as String?)?.trim();
+      final cropsDynamic = profile?['crops'];
+      final areaNum = profile?['areaM2'] as num?;
+
+      List<String> crops = [];
+      if (cropsDynamic is List) {
+        crops = cropsDynamic.whereType<String>().toList();
+      } else if (cropsDynamic is String) {
+        crops = cropsDynamic
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+      }
+
+      // Si le profil n'est pas correctement configuré, on ne veut PAS ouvrir un plan par défaut
+      if (location == null ||
+          location.isEmpty ||
+          soilType == null ||
+          soilType.isEmpty ||
+          crops.isEmpty ||
+          areaNum == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  "Aucune parcelle configurée pour ce superviseur. Demandez à l'admin de définir la parcelle."),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => IrrigationPlanScreen(
-            // Pour le superviseur, on ouvre le même écran que le fermier
-            // avec une localisation fixe (par ex. "bizerte") pour que la météo fonctionne.
-            location: 'bizerte',
-            soilType: 'sableux',
-            cropTypes: const ['olive'],
+            location: location,
+            soilType: soilType,
+            cropTypes: crops,
+            areaM2: areaNum.toDouble(),
             isSupervisor: true,
           ),
         ),

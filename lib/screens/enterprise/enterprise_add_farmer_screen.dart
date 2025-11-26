@@ -16,10 +16,38 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _parcelLocation = TextEditingController();
+  final _parcelCrops = TextEditingController();
+  final _parcelArea = TextEditingController();
+  String _soilType = 'sableux';
   bool _loading = false;
   final AuthService _authService = AuthService();
 
   Future<void> _addFarmer() async {
+    if (_name.text.trim().isEmpty ||
+        _email.text.trim().isEmpty ||
+        _password.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nom, email et mot de passe sont obligatoires'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_parcelLocation.text.trim().isEmpty ||
+        _parcelCrops.text.trim().isEmpty ||
+        _parcelArea.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Les informations de parcelle sont obligatoires'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
     final result = await _authService.register(
       name: _name.text,
@@ -41,11 +69,51 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Fermier ajouté !'), backgroundColor: Colors.green),
-    );
+    // Tenter de créer le profil parcelle pour ce nouveau fermier à partir des champs saisis
+    final token = result['token'] as String?;
     final dynamic apiUser = result['user'];
+
+    if (token != null) {
+      double? area;
+      try {
+        area = double.parse(_parcelArea.text.replaceAll(',', '.'));
+      } catch (_) {
+        area = null;
+      }
+
+      if (area != null) {
+        final ok = await _authService.updateFarmerProfileWithToken(
+          token: token,
+          parcelLocation: _parcelLocation.text.trim(),
+          soilType: _soilType,
+          crops: _parcelCrops.text
+              .split(',')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList(),
+          areaM2: area,
+        );
+
+        if (!ok && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Fermier créé, mais erreur lors de l’enregistrement de la parcelle'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Fermier et parcelle ajoutés !'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
 
     // On s'assure de toujours renvoyer un objet User au tableau de bord
     if (apiUser is User) {
@@ -134,6 +202,65 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
                         decoration:
                             const InputDecoration(labelText: 'Mot de passe'),
                         obscureText: true,
+                      ),
+                      const SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Parcelle du superviseur',
+                          style:
+                              Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _parcelLocation,
+                        decoration: const InputDecoration(
+                          labelText: 'Localisation / Parcelle',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _soilType,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'sableux',
+                            child: Text('Sol sableux'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'argileux',
+                            child: Text('Sol argileux'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'limoneux',
+                            child: Text('Sol limoneux'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() {
+                            _soilType = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Type de sol',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _parcelCrops,
+                        decoration: const InputDecoration(
+                          labelText: 'Cultures (séparées par des virgules)',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _parcelArea,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Surface (m²)',
+                        ),
                       ),
                       const SizedBox(height: 20),
                       _loading

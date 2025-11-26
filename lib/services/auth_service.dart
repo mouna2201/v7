@@ -227,6 +227,35 @@ class AuthService {
     }
   }
 
+  // 👨‍🌾 PROFIL D'UN FERMIER PAR ID (pour l'admin)
+  Future<Map<String, dynamic>?> fetchFarmerProfileById(String farmerId) async {
+    try {
+      final token = await getToken();
+      if (token == null) return null;
+
+      // Ajuste l'URL si ta route backend est différente
+      final response = await http.get(
+        Uri.parse('$baseUrl/farmer/profile/$farmerId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      print('Erreur fetchFarmerProfileById: $e');
+      return null;
+    }
+  }
+
   Future<bool> updateFarmerProfile({
     required String parcelLocation,
     required String soilType,
@@ -254,6 +283,37 @@ class AuthService {
       return response.statusCode == 200;
     } catch (e) {
       print('Erreur updateFarmerProfile: $e');
+      return false;
+    }
+  }
+
+  // 👨‍🌾 Créer / mettre à jour le profil parcelle pour un utilisateur spécifique
+  // Utilisé par l'admin après la création d'un compte fermier, en passant le token du fermier.
+  Future<bool> updateFarmerProfileWithToken({
+    required String token,
+    required String parcelLocation,
+    required String soilType,
+    required List<String> crops,
+    required double areaM2,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/farmer/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'parcelLocation': parcelLocation,
+          'soilType': soilType,
+          'crops': crops,
+          'areaM2': areaM2,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erreur updateFarmerProfileWithToken: $e');
       return false;
     }
   }

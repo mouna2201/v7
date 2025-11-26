@@ -262,17 +262,73 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                                           );
                                         },
                                         child: InkWell(
-                                          onTap: () {
+                                          onTap: () async {
+                                            // Depuis l'admin, ouvrir le même plan que le superviseur :
+                                            // thème bleu et données de parcelle réelles du fermier.
+                                            Map<String, dynamic>? profile;
+                                            try {
+                                              profile = await _authService
+                                                  .fetchFarmerProfileById(
+                                                      farmer.id);
+                                            } catch (_) {
+                                              profile = null;
+                                            }
+
+                                            final location =
+                                                (profile?['parcelLocation']
+                                                        as String?)
+                                                    ?.trim();
+                                            final soilType =
+                                                (profile?['soilType']
+                                                        as String?)
+                                                    ?.trim();
+                                            final cropsDynamic =
+                                                profile?['crops'];
+                                            final areaNum =
+                                                profile?['areaM2'] as num?;
+
+                                            List<String> crops = [];
+                                            if (cropsDynamic is List) {
+                                              crops = cropsDynamic
+                                                  .whereType<String>()
+                                                  .toList();
+                                            } else if (cropsDynamic
+                                                is String) {
+                                              crops = cropsDynamic
+                                                  .split(',')
+                                                  .map((e) => e.trim())
+                                                  .where((e) => e.isNotEmpty)
+                                                  .toList();
+                                            }
+
+                                            if (location == null ||
+                                                location.isEmpty ||
+                                                soilType == null ||
+                                                soilType.isEmpty ||
+                                                crops.isEmpty ||
+                                                areaNum == null) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      "Aucune parcelle configurée pour ce fermier. Définissez-la d'abord dans l'ajout/édition."),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                              return;
+                                            }
+
+                                            if (!context.mounted) return;
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (_) => IrrigationPlanScreen(
-                                                  // Utilisation de valeurs simples par défaut pour ouvrir le plan d'irrigation
-                                                  location: farmer.name.isNotEmpty
-                                                      ? farmer.name
-                                                      : 'Parcelle',
-                                                  soilType: 'sableux',
-                                                  cropTypes: const ['culture'],
+                                                  location: location,
+                                                  soilType: soilType,
+                                                  cropTypes: crops,
+                                                  areaM2: areaNum.toDouble(),
+                                                  isSupervisor: true,
                                                 ),
                                               ),
                                             );

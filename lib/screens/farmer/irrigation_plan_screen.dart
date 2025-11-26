@@ -21,6 +21,7 @@ class IrrigationPlanScreen extends StatefulWidget {
   final String soilType;
   final List<String> cropTypes;
   final bool isSupervisor;
+  final double? areaM2;
 
   const IrrigationPlanScreen({
     super.key,
@@ -28,6 +29,7 @@ class IrrigationPlanScreen extends StatefulWidget {
     required this.soilType,
     required this.cropTypes,
     this.isSupervisor = false,
+    this.areaM2,
   });
 
   @override
@@ -59,8 +61,12 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
   DateTime _selectedStartDate = DateTime.now();
 
-  // Couleur principale du thème du plan d'arrosage (bleu pour tout le monde)
-  Color get _primaryColor => const Color(0xFF1976D2);
+  // Couleur principale du thème du plan d'arrosage :
+  // - VERT pour le fermier
+  // - BLEU pour l'entreprise / superviseur
+  Color get _primaryColor => widget.isSupervisor
+      ? const Color(0xFF1976D2)
+      : const Color(0xFF4CAF50);
 
   String _formatTimeOfDay(TimeOfDay time) {
     final h = time.hour.toString().padLeft(2, '0');
@@ -700,6 +706,68 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                         "Erreur Mistral : $_mistralError",
                         style: const TextStyle(color: Colors.red, fontSize: 12),
                       ),
+                  ],
+                ),
+              ),
+            // 🧭 Résumé de la parcelle (si surface disponible)
+            if (widget.areaM2 != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _isDarkTheme
+                      ? const Color(0xFF1F2933)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _primaryColor.withOpacity(0.4),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.landscape,
+                          size: 18,
+                          color: _primaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Parcelle : ${widget.location}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: _isDarkTheme
+                                  ? Colors.white
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${widget.areaM2!.toStringAsFixed(0)} m² • Sol : ${_getSoilTypeTranslation(widget.soilType)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _isDarkTheme
+                            ? Colors.white70
+                            : Colors.black54,
+                      ),
+                    ),
                   ],
                 ),
               ),
