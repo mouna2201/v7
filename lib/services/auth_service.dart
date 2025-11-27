@@ -61,15 +61,23 @@ class AuthService {
 
   // 🔐 CONNEXION
   Future<Map<String, dynamic>> login({
-    required String email,
+    String? email,
+    String? username,
     required String password,
   }) async {
+    if (email == null && username == null) {
+      return {
+        'success': false,
+        'message': 'Email ou nom d\'utilisateur requis',
+      };
+    }
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/users/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email,
+          if (email != null) 'email': email,
+          if (username != null) 'username': username,
           'password': password,
         }),
       );

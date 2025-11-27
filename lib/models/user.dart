@@ -4,20 +4,36 @@ class User {
   final String email;
   final String name;
   final String role; // 'farmer', 'enterprise', 'admin'
+  final String? parcelLocation;
+  final String? soilType;
+  final List<String> crops;
+  final double? areaM2;
 
   User({
     required this.id,
     required this.email,
     required this.name,
     required this.role,
-  });
+    this.parcelLocation,
+    this.soilType,
+    List<String>? crops,
+    this.areaM2,
+  }) : crops = crops ?? [];
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] ?? '',
-      email: json['email'] ?? '',
-      name: json['name'] ?? '',
-      role: json['role'] ?? 'farmer',
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      role: json['role']?.toString() ?? 'farmer',
+      parcelLocation: json['parcelLocation']?.toString(),
+      soilType: json['soilType']?.toString(),
+      crops: json['crops'] is List 
+          ? List<String>.from(json['crops'].map((e) => e.toString()))
+          : (json['crops'] is String ? [json['crops'] as String] : []),
+      areaM2: json['areaM2']?.toDouble() ?? 
+             (json['area']?.toDouble() ?? 
+              (json['surface'] is String ? double.tryParse(json['surface']) : null)),
     );
   }
 
@@ -27,6 +43,10 @@ class User {
       'email': email,
       'name': name,
       'role': role,
+      'parcelLocation': parcelLocation,
+      'soilType': soilType,
+      'crops': crops,
+      'areaM2': areaM2,
     };
   }
 

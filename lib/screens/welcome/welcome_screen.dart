@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/custom_button.dart';
 import '../enterprise/enterprise_role_screen.dart';
 import '../farmer/farmer_form_screen.dart';
-import '../farmer/register_screen.dart';
+import '../farmer/farmer_login_screen.dart';
 import '../../presentation/providers/language_provider.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:math';
@@ -45,14 +45,34 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
   }
 
   Widget _animatedBackground() {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          size: MediaQuery.of(context).size,
-          painter: WavePainter(_animation.value),
-        );
-      },
+    return Stack(
+      children: [
+        // Image de fond avec effet d'assombrissement
+        Positioned.fill(
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.4),
+              BlendMode.darken,
+            ),
+            child: Image.asset(
+              'assets/images/farmer.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        // Animation des vagues par-dessus l'image
+        Positioned.fill(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return CustomPaint(
+                size: MediaQuery.of(context).size,
+                painter: WavePainter(_animation.value),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -62,9 +82,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     final currentLang = locale.languageCode;
 
     String welcomeText = {
-      'fr': "Bienvenue sur AgroPiquet 🌿🏢",
-      'en': "Welcome to AgroPiquet 🌿🏢",
-      'ar': "مرحبًا بك في أغروبيكيت 🌿🏢"
+      'fr': "Bienvenue sur AgroPiquet ",
+      'en': "Welcome to AgroPiquet ",
+      'ar': "مرحبًا بك في أغروبيكيت "
     }[currentLang]!;
 
     String roleText = {
@@ -74,7 +94,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
     }[currentLang]!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           _animatedBackground(),
@@ -118,26 +138,44 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                   const SizedBox(height: 20),
                   Text(
                     welcomeText,
-                    style: const TextStyle(
-                      fontSize: 28,
+                    style: TextStyle(
+                      fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF48D1CC),
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.7),
+                          blurRadius: 10,
+                          offset: const Offset(2, 2),
+                        ),
+                      ],
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
                   Text(
                     roleText,
-                    style: const TextStyle(fontSize: 16, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.7),
+                          blurRadius: 5,
+                          offset: const Offset(1, 1),
+                        ),
+                      ],
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 30),
                   Align(
                     alignment: Alignment.centerRight,
                     child: PopupMenuButton<String>(
-                      icon: const Icon(Icons.language, color: Color(0xFF48D1CC)),
+                      icon: const Icon(Icons.language, color: Colors.white),
                       onSelected: (value) {
-                        changeLanguage(ref, value);
+                        ref.read(languageProvider.notifier).state = Locale(value);
                       },
                       itemBuilder: (context) => [
                         const PopupMenuItem(
@@ -178,7 +216,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const FarmerLoginScreen(),
+                            builder: (_) => FarmerLoginScreen(),
                           ),
                         ),
                       ),
