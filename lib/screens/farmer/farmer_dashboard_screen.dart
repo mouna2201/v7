@@ -33,21 +33,39 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
       data: AppTheme.farmerTheme,
       child: Scaffold(
         backgroundColor: const Color(0xFFFAFAFA),
-        appBar: AppBar(
-          title: const Text("Tableau de bord"),
-          actions: [
-            Icon(
-              sensorState.isConnected ? Icons.cloud_done : Icons.cloud_off,
-              color: sensorState.isConnected
-                  ? const Color(0xFF6FA86F)
-                  : Colors.red,
-            ),
-            const SizedBox(width: 16),
-          ],
-        ),
-        body: Column(
+        body: Stack(
           children: [
-            // Section Météo
+            // Image de fond ferme
+            Positioned.fill(
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Colors.white.withOpacity(0.2),
+                  BlendMode.srcATop,
+                ),
+                child: Image.asset(
+                  'assets/images/ferme.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            // Contenu principal
+            Column(
+              children: [
+                AppBar(
+                  title: const Text("Tableau de bord"),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  actions: [
+                    Icon(
+                      sensorState.isConnected ? Icons.cloud_done : Icons.cloud_off,
+                      color: sensorState.isConnected
+                          ? const Color(0xFF6FA86F)
+                          : Colors.red,
+                    ),
+                    const SizedBox(width: 16),
+                  ],
+                ),
+                // Section Météo
             Container(
               height: 200,
               margin: const EdgeInsets.all(8),
@@ -225,6 +243,8 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
             ),
           ],
         ),
+        ],
+      ),
       ),
     );
   }

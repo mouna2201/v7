@@ -75,12 +75,28 @@ class _EnterpriseDashboardScreenState
           )
         ],
       ),
+      body: Stack(
+        children: [
+          // Image de fond ferme
+          Positioned.fill(
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.35),
+                BlendMode.darken,
+              ),
+              child: Image.asset(
+                'assets/images/ferme.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          // Contenu principal du dashboard
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             const Text(
               "Bienvenue 👋",
               style: TextStyle(
@@ -199,7 +215,9 @@ class _EnterpriseDashboardScreenState
                         ),
             ),
           ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -60,187 +60,188 @@ class _EnterpriseFormScreenState extends State<EnterpriseFormScreen> {
             const SizedBox(width: 8),
           ],
         ),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFE3F2FD),
-                Color(0xFFEEF7FF),
-              ],
-            ),
-          ),
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 520),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 18,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: const [
-                              Icon(Icons.map_outlined,
-                                  color: Color(0xFF0D47A1)),
-                              SizedBox(width: 8),
-                              Text(
-                                "Localisation",
-                                style: TextStyle(
-                                  color: Color(0xFF0D47A1),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          _buildTextField(
-                            controller: location,
-                            label: "Ex: Bizerte, Tunisie",
-                          ),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: const [
-                              Icon(Icons.grass, color: Color(0xFF0D47A1)),
-                              SizedBox(width: 8),
-                              Text(
-                                "Type de sol",
-                                style: TextStyle(
-                                  color: Color(0xFF0D47A1),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          DropdownButtonFormField<String>(
-                            value: soil,
-                            dropdownColor: Colors.white,
-                            style: const TextStyle(
-                              color: Color(0xFF0D47A1),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            items: [
-                              "sableux",
-                              "argileux",
-                              "calcaire",
-                              "limoneux",
-                            ]
-                                .map(
-                                  (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) => setState(() => soil = v ?? soil),
-                            decoration: _inputDecoration(),
-                          ),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: const [
-                              Icon(Icons.eco_outlined,
-                                  color: Color(0xFF0D47A1)),
-                              SizedBox(width: 8),
-                              Text(
-                                "Types de cultures",
-                                style: TextStyle(
-                                  color: Color(0xFF0D47A1),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          _buildTextField(
-                            controller: crop,
-                            label: "Ex: Tomate, Blé, Olive...",
-                          ),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: const [
-                              Icon(Icons.square_foot, color: Color(0xFF0D47A1)),
-                              SizedBox(width: 8),
-                              Text(
-                                "Superficie (hectares)",
-                                style: TextStyle(
-                                  color: Color(0xFF0D47A1),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          _buildTextField(
-                            controller: hectares,
-                            label: "Ex: 5",
-                            type: TextInputType.number,
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              text: "Générer le plan IA",
-                              onTap: () {
-                                if (location.text.isEmpty ||
-                                    crop.text.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          "Veuillez remplir tous les champs"),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                final cropList = crop.text
-                                    .split(',')
-                                    .map((c) => c.trim())
-                                    .where((c) => c.isNotEmpty)
-                                    .toList();
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => IrrigationPlanScreen(
-                                      location: location.text,
-                                      soilType: soil,
-                                      cropTypes: cropList,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+        body: Stack(
+          children: [
+            // Image de fond ferme
+            Positioned.fill(
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Colors.white.withOpacity(0.15),
+                  BlendMode.srcATop,
+                ),
+                child: Image.asset(
+                  'assets/images/ferme.png',
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-          ),
+            // Contenu du formulaire
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.map_outlined,
+                                color: Color(0xFF0D47A1)),
+                            SizedBox(width: 8),
+                            Text(
+                              "Localisation",
+                              style: TextStyle(
+                                color: Color(0xFF0D47A1),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        _buildTextField(
+                          controller: location,
+                          label: "Ex: Bizerte, Tunisie",
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: const [
+                            Icon(Icons.grass, color: Color(0xFF0D47A1)),
+                            SizedBox(width: 8),
+                            Text(
+                              "Type de sol",
+                              style: TextStyle(
+                                color: Color(0xFF0D47A1),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          value: soil,
+                          dropdownColor: Colors.white,
+                          style: const TextStyle(
+                            color: Color(0xFF0D47A1),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          items: [
+                            "sableux",
+                            "argileux",
+                            "calcaire",
+                            "limoneux",
+                          ]
+                              .map(
+                                (e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) => setState(() => soil = v ?? soil),
+                          decoration: _inputDecoration(),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: const [
+                            Icon(Icons.eco_outlined,
+                                color: Color(0xFF0D47A1)),
+                            SizedBox(width: 8),
+                            Text(
+                              "Types de cultures",
+                              style: TextStyle(
+                                color: Color(0xFF0D47A1),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        _buildTextField(
+                          controller: crop,
+                          label: "Ex: Tomate, Blé, Olive...",
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: const [
+                            Icon(Icons.square_foot, color: Color(0xFF0D47A1)),
+                            SizedBox(width: 8),
+                            Text(
+                              "Superficie (hectares)",
+                              style: TextStyle(
+                                color: Color(0xFF0D47A1),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        _buildTextField(
+                          controller: hectares,
+                          label: "Ex: 5",
+                          type: TextInputType.number,
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            text: "Générer le plan IA",
+                            onTap: () {
+                              if (location.text.isEmpty ||
+                                  crop.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        "Veuillez remplir tous les champs"),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              final cropList = crop.text
+                                  .split(',')
+                                  .map((c) => c.trim())
+                                  .where((c) => c.isNotEmpty)
+                                  .toList();
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => IrrigationPlanScreen(
+                                    location: location.text,
+                                    soilType: soil,
+                                    cropTypes: cropList,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -13,15 +13,15 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.2.2
-<<<<<<< HEAD
-  # intl: ^0.20.2  <-- supprimé pour éviter le conflit
-  mqtt_client: 9.8.1
-=======
-  intl: ^0.19.0
->>>>>>> 122f821 (k)
+  intl: ^0.20.2
+  mqtt_client: ^10.11.1
   provider: ^6.1.1
+  flutter_riverpod: ^3.0.3
+  flutter_localizations:
+    sdk: flutter
   http: ^1.1.0
-  # Packages retirés temporairement pour résoudre les conflits
+  flutter_local_notifications: ^17.2.1
+  timezone: ^0.9.4
 
 dev_dependencies:
   flutter_test:
@@ -30,7 +30,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
-    - assets/images/humidity.png
-    - assets/images/farmer.png
+    - assets/images/role.png
+    - assets/images/admin.png
+    - assets/images/superviseur.png
     - assets/translations/
+    - assets/images/farmer.png
+    - assets/images/ferme.png

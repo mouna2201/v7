@@ -197,9 +197,25 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
           title: const Text('Ajouter un fermier'),
           centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+        body: Stack(
+          children: [
+            // Image de fond ferme
+            Positioned.fill(
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Colors.white.withOpacity(0.15),
+                  BlendMode.srcATop,
+                ),
+                child: Image.asset(
+                  'assets/images/ferme.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            // Contenu du formulaire
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 10),
@@ -343,6 +359,8 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
             ],
           ),
         ),
+        ],
+      ),
       ),
     );
   }

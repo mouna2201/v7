@@ -293,8 +293,27 @@ class _FarmerLoginScreenState extends State<FarmerLoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const FarmerRegisterScreen(),
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) =>
+                              const FarmerRegisterScreen(),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            const begin = Offset(0.0, 1.0);
+                            const end = Offset.zero;
+                            const curve = Curves.easeOutCirc;
+
+                            var tween = Tween(begin: begin, end: end).chain(
+                              CurveTween(curve: curve),
+                            );
+
+                            return SlideTransition(
+                              position: animation.drive(tween),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 800),
                         ),
                       );
                     },
@@ -329,29 +348,52 @@ class _FarmerRegisterScreenState extends State<FarmerRegisterScreen> {
   }
 
   Future<void> _onRegister() async {
+    print('=== _onRegister appelé ===');
     setState(() => _loading = true);
 
     final String name = _name.text.trim();
     final String password = _password.text.trim();
 
-    // Génère un email technique à partir du nom, car l’API backend demande un email
+    print('Nom: "$name", Password: "$password"');
+
+    if (name.isEmpty || password.isEmpty) {
+      print('Champs vides!');
+      _showSnackbar('Veuillez remplir tous les champs', error: true);
+      setState(() => _loading = false);
+      return;
+    }
+
+    // Génère un email technique à partir du nom, car l'API backend demande un email
     final String technicalEmail =
         '${name.toLowerCase().replaceAll(' ', '_')}@farmer.local';
 
-    final result = await _authService.register(
-      name: name,
-      email: technicalEmail,
-      password: password,
-      role: 'farmer',
-    );
-    setState(() => _loading = false);
-    if (!result['success']) {
-      _showSnackbar(result['message']?.toString() ?? 'Erreur inscription',
-          error: true);
-      return;
+    print('Email technique: $technicalEmail');
+
+    try {
+      final result = await _authService.register(
+        name: name,
+        email: technicalEmail,
+        password: password,
+        role: 'farmer',
+      );
+      
+      print('Résultat register: $result');
+      setState(() => _loading = false);
+      
+      if (!result['success']) {
+        print('Échec inscription: ${result['message']}');
+        _showSnackbar(result['message']?.toString() ?? 'Erreur inscription', error: true);
+        return;
+      }
+      
+      print('Inscription réussie!');
+      _showSnackbar('Compte créé avec succès !');
+      Navigator.pop(context); // retour vers login
+    } catch (e) {
+      print('Exception lors de l\'inscription: $e');
+      setState(() => _loading = false);
+      _showSnackbar('Erreur technique: $e', error: true);
     }
-    _showSnackbar('Compte créé avec succès !');
-    Navigator.pop(context); // retour vers login
   }
 
   @override
@@ -377,150 +419,172 @@ class _FarmerRegisterScreenState extends State<FarmerRegisterScreen> {
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFC9E4CA),
-              Color(0xFFE8F5E9),
-            ],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFA5D6A7),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFF43A047),
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.agriculture,
-                          color: Color(0xFF1B5E20),
-                          size: 32,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Créer votre compte',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF1B5E20),
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Enregistrez un identifiant et un mot de passe pour accéder à votre tableau de bord fermier.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F8E9),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: const Color(0xFFBDBDBD),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 18,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        TextField(
-                          controller: _name,
-                          style: const TextStyle(color: Color(0xFF1B5E20)),
-                          decoration: InputDecoration(
-                            labelText: 'Nom (identifiant fermier)',
-                            labelStyle: TextStyle(color: Colors.grey.shade700),
-                            prefixIcon: const Icon(
-                              Icons.person_outline,
-                              color: Color(0xFF388E3C),
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF1F8E9),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFBDBDBD),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  BorderSide(color: primary, width: 1.6),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        TextField(
-                          controller: _password,
-                          style: const TextStyle(color: Color(0xFF1B5E20)),
-                          decoration: InputDecoration(
-                            labelText: 'Mot de passe',
-                            labelStyle: TextStyle(color: Colors.grey.shade700),
-                            prefixIcon: const Icon(
-                              Icons.lock_outline,
-                              color: Color(0xFF388E3C),
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF1F8E9),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFBDBDBD),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  BorderSide(color: primary, width: 1.6),
-                            ),
-                          ),
-                          obscureText: true,
-                        ),
-                        const SizedBox(height: 20),
-                        _loading
-                            ? const Center(child: CircularProgressIndicator())
-                            : CustomButton(
-                                text: 'S\'inscrire', onTap: _onRegister),
-                      ],
-                    ),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // Image de fond avec assombrissement
+          Positioned.fill(
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.3),
+                BlendMode.darken,
+              ),
+              child: Image.asset(
+                'assets/images/ferme.png',
+                fit: BoxFit.cover,
               ),
             ),
           ),
-        ),
+          // Contenu par-dessus
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFF43A047),
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.agriculture,
+                            color: Color(0xFF1B5E20),
+                            size: 32,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Créer votre compte',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black,
+                            blurRadius: 4,
+                            offset: Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Enregistrez un identifiant et un mot de passe pour accéder à votre tableau de bord fermier.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black,
+                            blurRadius: 2,
+                            offset: Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.85),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFFBDBDBD).withOpacity(0.5),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextField(
+                            controller: _name,
+                            style: const TextStyle(color: Color(0xFF1B5E20)),
+                            decoration: InputDecoration(
+                              labelText: 'Nom (identifiant fermier)',
+                              labelStyle: TextStyle(color: Colors.grey.shade700),
+                              prefixIcon: const Icon(
+                                Icons.person_outline,
+                                color: Color(0xFF388E3C),
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF1F8E9),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFBDBDBD),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide:
+                                    BorderSide(color: primary, width: 1.6),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          TextField(
+                            controller: _password,
+                            style: const TextStyle(color: Color(0xFF1B5E20)),
+                            decoration: InputDecoration(
+                              labelText: 'Mot de passe',
+                              labelStyle: TextStyle(color: Colors.grey.shade700),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline,
+                                color: Color(0xFF388E3C),
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF1F8E9),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFBDBDBD),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide:
+                                    BorderSide(color: primary, width: 1.6),
+                              ),
+                            ),
+                            obscureText: true,
+                          ),
+                          const SizedBox(height: 20),
+                          _loading
+                              ? const Center(child: CircularProgressIndicator())
+                              : CustomButton(
+                                  text: 'S\'inscrire',
+                                  onTap: _onRegister,
+                                ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
