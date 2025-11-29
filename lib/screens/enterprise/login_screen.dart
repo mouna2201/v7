@@ -24,10 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
 
   Future<void> _login() async {
-    final email = _emailController.text.trim();
+    final emailOrUsername = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (emailOrUsername.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez remplir tous les champs'),
@@ -39,7 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _loading = true);
 
-    final result = await _authService.login(email: email, password: password);
+    // Détecter si c'est un email ou un nom d'utilisateur
+    final bool isEmail = emailOrUsername.contains('@');
+    final result = isEmail
+        ? await _authService.login(email: emailOrUsername, password: password)
+        : await _authService.login(username: emailOrUsername, password: password);
 
     setState(() => _loading = false);
 

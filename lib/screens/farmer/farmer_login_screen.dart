@@ -149,6 +149,8 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                 soilType: soilType,
                 cropTypes: cropTypes,
                 areaM2: areaNum?.toDouble(),
+                farmerName: farmerName,
+                farmerAddress: profile?['farmerAddress']?.toString(),
               ),
             ),
           );

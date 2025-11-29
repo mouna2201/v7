@@ -370,6 +370,8 @@ class _EnterpriseDashboardScreenState
         farmer.soilType!,
         farmer.crops,
         farmer.areaM2!,
+        farmerName: farmer.name,
+        farmerAddress: farmer.email, // Utiliser l'email comme adresse pour l'instant
       );
       return;
     }
@@ -385,6 +387,8 @@ class _EnterpriseDashboardScreenState
           updatedFarmer.soilType ?? 'sableux',
           updatedFarmer.crops.isNotEmpty ? updatedFarmer.crops : ['Fraise'],
           updatedFarmer.areaM2 ?? 4.0,
+          farmerName: updatedFarmer.name,
+          farmerAddress: updatedFarmer.email,
         );
         return;
       }
@@ -401,6 +405,8 @@ class _EnterpriseDashboardScreenState
       'sableux',
       ['Fraise'],
       4.0,
+      farmerName: farmer.name,
+      farmerAddress: farmer.email,
     );
   }
 
@@ -409,8 +415,10 @@ class _EnterpriseDashboardScreenState
     String location,
     String soilType,
     List<String> cropTypes,
-    double areaM2,
-  ) {
+    double areaM2, {
+    String? farmerName,
+    String? farmerAddress,
+  } ) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -420,6 +428,8 @@ class _EnterpriseDashboardScreenState
           cropTypes: cropTypes,
           areaM2: areaM2,
           isSupervisor: true,
+          farmerName: farmerName,
+          farmerAddress: farmerAddress,
         ),
       ),
     );
