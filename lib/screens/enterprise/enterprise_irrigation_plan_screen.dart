@@ -317,6 +317,26 @@ class _EnterpriseIrrigationPlanScreenState
         startDate: _selectedStartDate!,
       );
 
+      // Ajouter les événements dans le calendrier
+      final calendarSuccess =
+          await NotificationService().addIrrigationCalendarEvents(
+        crop: _getCropTranslation(widget.cropTypes.first),
+        intervalDays: _recommendedInterval ?? 2,
+        startDate: _selectedStartDate!,
+        reminderTime: _reminderTime,
+      );
+
+      if (calendarSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('✅ Événements d\'irrigation ajoutés à votre calendrier!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+
       setState(() {
         _isIrrigationPlanActive = true;
         _isLoadingMistral = false;

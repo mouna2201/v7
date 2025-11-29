@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:device_calendar/device_calendar.dart';
 
 /// Service centralisé pour les notifications locales (Android + fallback Web).
 class NotificationService {
@@ -11,6 +13,7 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+  final DeviceCalendarPlugin _calendarPlugin = DeviceCalendarPlugin();
 
   bool _initialized = false;
 
@@ -129,5 +132,82 @@ class NotificationService {
     if (!kIsWeb) return;
     // Pour le Web, on se limite à un log pour l'instant.
     debugPrint('[WEB NOTIF] $title — $body');
+  }
+
+  /// Ajoute des événements d'irrigation récurrents dans le calendrier
+  Future<bool> addIrrigationCalendarEvents({
+    required String crop,
+    required int intervalDays,
+    required DateTime startDate,
+    required TimeOfDay reminderTime,
+  }) async {
+    if (kIsWeb) {
+      debugPrint('[WEB CALENDAR] Calendar integration not available on web');
+      return false;
+    }
+
+    try {
+      // Demander les permissions calendrier
+      final permissions = await _calendarPlugin.requestPermissions();
+      if (permissions.data == null || !permissions.data!) {
+        debugPrint('Calendar permission denied');
+        return false;
+      }
+
+      // Récupérer les calendriers disponibles
+      final calendarsResult = await _calendarPlugin.retrieveCalendars();
+      if (!calendarsResult.isSuccess ||
+          calendarsResult.data == null ||
+          calendarsResult.data!.isEmpty) {
+        debugPrint('No calendars found or error retrieving calendars');
+        return false;
+      }
+
+      // Utiliser le premier calendrier disponible (généralement le calendrier principal)
+      final primaryCalendar = calendarsResult.data!.first;
+
+      // Créer les jours d'irrigation basés sur l'intervalle
+      final irrigationDays = <DateTime>[];
+      var currentDate = startDate;
+
+      // Générer les 10 prochaines dates d'irrigation
+      for (int i = 0; i < 10; i++) {
+        irrigationDays.add(DateTime(
+          currentDate.year,
+          currentDate.month,
+          currentDate.day,
+          reminderTime.hour,
+          reminderTime.minute,
+        ));
+        currentDate = currentDate.add(Duration(days: intervalDays));
+      }
+
+      // Créer un événement récurrent pour chaque jour
+      for (final irrigationDate in irrigationDays) {
+        final event = Event(
+          primaryCalendar.id,
+          title: '🌱 Irrigation - $crop',
+          description:
+              'Rappel d\'irrigation pour $crop. Fréquence: Tous les $intervalDays jours.',
+          start: tz.TZDateTime.from(irrigationDate, tz.local),
+          end: tz.TZDateTime.from(irrigationDate.add(Duration(minutes: 15)),
+              tz.local), // Durée de 15 minutes
+        );
+
+        final createResult = await _calendarPlugin.createOrUpdateEvent(event);
+        if (createResult == null || !createResult.isSuccess) {
+          debugPrint(
+              'Failed to create calendar event: ${createResult?.errors}');
+          return false;
+        }
+      }
+
+      debugPrint(
+          'Successfully created ${irrigationDays.length} irrigation calendar events');
+      return true;
+    } catch (e) {
+      debugPrint('Error creating calendar events: $e');
+      return false;
+    }
   }
 }
