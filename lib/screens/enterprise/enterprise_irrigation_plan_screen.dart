@@ -39,10 +39,12 @@ class EnterpriseIrrigationPlanScreen extends StatefulWidget {
   });
 
   @override
-  State<EnterpriseIrrigationPlanScreen> createState() => _EnterpriseIrrigationPlanScreenState();
+  State<EnterpriseIrrigationPlanScreen> createState() =>
+      _EnterpriseIrrigationPlanScreenState();
 }
 
-class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPlanScreen>
+class _EnterpriseIrrigationPlanScreenState
+    extends State<EnterpriseIrrigationPlanScreen>
     with TickerProviderStateMixin {
   late AppLocalizations _l10n;
   final MQTTService _mqttService = MQTTService();
@@ -80,7 +82,7 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat();
-    
+
     _loadWeatherForLocation();
     _loadCropHistory();
     _initializeMQTT();
@@ -96,26 +98,21 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
   void _initializeMQTT() {
     _mqttService.connect();
     _mqttService.subscribe('farm/soil1');
-    _mqttService.messageStream.listen((message) {
-      try {
-        final data = jsonDecode(message);
-        final sensorReading = SensorData.fromJson(data);
-        setState(() {
-          _sensorData.add(sensorReading);
-          if (_sensorData.length > 100) {
-            _sensorData.removeAt(0);
-          }
-        });
-      } catch (e) {
-        print('Erreur parsing MQTT: $e');
-      }
-    });
+    _mqttService.onDataReceived = (sensorReading) {
+      setState(() {
+        _sensorData.add(sensorReading);
+        if (_sensorData.length > 100) {
+          _sensorData.removeAt(0);
+        }
+      });
+    };
   }
 
   Future<void> _loadWeatherForLocation() async {
     try {
       setState(() => _isLoadingWeather = true);
-      final weather = await _weatherService.getWeatherForLocation(widget.location);
+      final weather =
+          await _weatherService.getWeatherForLocation(widget.location);
       setState(() {
         _weatherData = weather;
         _isLoadingWeather = false;
@@ -163,13 +160,16 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
       'Légume': const Color(0xFF00BCD4),
       'Fruit': const Color(0xFFFF6B6B),
     };
-    
-    final firstCrop = widget.cropTypes.isNotEmpty ? widget.cropTypes.first.toLowerCase() : '';
+
+    final firstCrop =
+        widget.cropTypes.isNotEmpty ? widget.cropTypes.first.toLowerCase() : '';
     for (var entry in cropColors.entries) {
       if (entry.key.toLowerCase() == firstCrop) return entry.value;
     }
-    
-    return _isDarkTheme ? const Color(0xFF2E7D32).withOpacity(0.8) : const Color(0xFF4CAF50).withOpacity(0.9);
+
+    return _isDarkTheme
+        ? const Color(0xFF2E7D32).withOpacity(0.8)
+        : const Color(0xFF4CAF50).withOpacity(0.9);
   }
 
   Color get _primaryColor {
@@ -206,12 +206,12 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
         'accent': const Color(0xFF689F38),
       },
     };
-    
+
     final lowerCrop = cropType.toLowerCase();
     for (var entry in cropColors.entries) {
       if (entry.key.toLowerCase() == lowerCrop) return entry.value;
     }
-    
+
     return {
       'primary': const Color(0xFF4CAF50),
       'secondary': const Color(0xFF81C784),
@@ -340,14 +340,17 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
 
   double _extractWaterAmountFromPlan(Map<String, dynamic> plan, double area) {
     final baseWaterPerSqm = 5.0;
-    final cropMultiplier = plan['cropType'].toString().toLowerCase() == 'tomate' ? 1.2 : 1.0;
+    final cropMultiplier =
+        plan['cropType'].toString().toLowerCase() == 'tomate' ? 1.2 : 1.0;
     return (baseWaterPerSqm * area * cropMultiplier);
   }
 
-  Future<List<IrrigationPlanHistoryRecord>> _fetchIrrigationPlanHistoryForCrop(String crop) async {
+  Future<List<IrrigationPlanHistoryRecord>> _fetchIrrigationPlanHistoryForCrop(
+      String crop) async {
     try {
       final allHistory = await _authService.getCropHistory();
-      final cropHistory = allHistory.where((record) => record.cropType == crop).toList();
+      final cropHistory =
+          allHistory.where((record) => record.cropType == crop).toList();
       return cropHistory;
     } catch (e) {
       print('Erreur récupération historique pour $crop: $e');
@@ -368,8 +371,8 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    FarmerFormScreen(farmerName: widget.farmerName ?? 'Agriculteur'),
+                builder: (context) => FarmerFormScreen(
+                    farmerName: widget.farmerName ?? 'Agriculteur'),
               ),
             );
           },
@@ -419,7 +422,8 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
               onPressed: () {
                 setState(() {
                   _isDarkTheme = !_isDarkTheme;
-                  _currentTheme = _isDarkTheme ? AppTheme.darkTheme : AppTheme.lightTheme;
+                  _currentTheme =
+                      _isDarkTheme ? AppTheme.darkTheme : AppTheme.lightTheme;
                 });
               },
               icon: Icon(_isDarkTheme ? Icons.light_mode : Icons.dark_mode),
@@ -504,7 +508,8 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: _getCropTypeColor().withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -591,7 +596,8 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
                         padding: const EdgeInsets.all(16.0),
                         child: Center(
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(_getCropTypeColor()),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                _getCropTypeColor()),
                           ),
                         ),
                       )
@@ -617,7 +623,8 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
                   _buildWateringCalendar(weatherData, widget.cropTypes.first),
                   const SizedBox(height: 20),
                   FutureBuilder<List<IrrigationPlanHistoryRecord>>(
-                    future: _fetchIrrigationPlanHistoryForCrop(widget.cropTypes.first),
+                    future: _fetchIrrigationPlanHistoryForCrop(
+                        widget.cropTypes.first),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(
@@ -646,7 +653,9 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
                           margin: const EdgeInsets.symmetric(horizontal: 16),
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: _isDarkTheme ? const Color(0xFF1F2933) : Colors.white,
+                            color: _isDarkTheme
+                                ? const Color(0xFF1F2933)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: Colors.grey.withOpacity(0.2),
@@ -689,7 +698,9 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
                             margin: const EdgeInsets.symmetric(horizontal: 16),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: _isDarkTheme ? const Color(0xFF1F2933) : Colors.white,
+                              color: _isDarkTheme
+                                  ? const Color(0xFF1F2933)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: Colors.grey.withOpacity(0.2),
@@ -719,7 +730,9 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                ...history.map((record) => _buildHistoryItem(record)).toList(),
+                                ...history
+                                    .map((record) => _buildHistoryItem(record))
+                                    .toList(),
                               ],
                             ),
                           ),
@@ -788,8 +801,11 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
           ),
           const SizedBox(height: 8),
           Text(
-            humidity < 30 ? 'Sol sec - Arrosage recommandé' :
-            humidity < 60 ? 'Humidité modérée' : 'Humidité optimale',
+            humidity < 30
+                ? 'Sol sec - Arrosage recommandé'
+                : humidity < 60
+                    ? 'Humidité modérée'
+                    : 'Humidité optimale',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
@@ -902,7 +918,9 @@ class _EnterpriseIrrigationPlanScreenState extends State<EnterpriseIrrigationPla
                 child: Center(
                   child: Icon(
                     weatherData[0]['rain'] > 0 ? Icons.check : Icons.close,
-                    color: weatherData[0]['rain'] > 0 ? _getCropTypeColor() : Colors.red,
+                    color: weatherData[0]['rain'] > 0
+                        ? _getCropTypeColor()
+                        : Colors.red,
                     size: 12,
                   ),
                 ),
