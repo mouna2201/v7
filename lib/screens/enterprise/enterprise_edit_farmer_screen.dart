@@ -9,10 +9,12 @@ class EnterpriseEditFarmerScreen extends StatefulWidget {
   const EnterpriseEditFarmerScreen({super.key, required this.farmer});
 
   @override
-  State<EnterpriseEditFarmerScreen> createState() => _EnterpriseEditFarmerScreenState();
+  State<EnterpriseEditFarmerScreen> createState() =>
+      _EnterpriseEditFarmerScreenState();
 }
 
-class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen> {
+class _EnterpriseEditFarmerScreenState
+    extends State<EnterpriseEditFarmerScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -29,20 +31,22 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
     super.initState();
     _nameController.text = widget.farmer.name;
     _emailController.text = widget.farmer.email;
-    
+
     // Charger les données de la parcelle
     _loadParcelData();
   }
 
   Future<void> _loadParcelData() async {
     try {
-      final profile = await _authService.fetchFarmerProfileById(widget.farmer.id);
+      final profile =
+          await _authService.fetchFarmerProfileById(widget.farmer.id);
       if (profile != null && mounted) {
         final soilType = profile['soilType'] ?? 'sableux';
         // S'assurer que le type de sol est valide
         final validSoilTypes = ['sableux', 'argileux', 'calcaire', 'limoneux'];
-        final validSoilType = validSoilTypes.contains(soilType) ? soilType : 'sableux';
-        
+        final validSoilType =
+            validSoilTypes.contains(soilType) ? soilType : 'sableux';
+
         setState(() {
           _parcelLocationController.text = profile['parcelLocation'] ?? '';
           _parcelCropsController.text = profile['crops']?.join(', ') ?? '';
@@ -55,8 +59,9 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
       if (mounted) {
         final soilType = widget.farmer.soilType ?? 'sableux';
         final validSoilTypes = ['sableux', 'argileux', 'calcaire', 'limoneux'];
-        final validSoilType = validSoilTypes.contains(soilType) ? soilType : 'sableux';
-        
+        final validSoilType =
+            validSoilTypes.contains(soilType) ? soilType : 'sableux';
+
         setState(() {
           _parcelLocationController.text = widget.farmer.parcelLocation ?? '';
           _parcelCropsController.text = widget.farmer.crops.join(', ');
@@ -81,47 +86,73 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Vérifier que l'ID du fermier n'est pas vide et est valide
+    final farmerId = widget.farmer.id;
+    print('DEBUG: Farmer ID brut = "$farmerId"');
+
+    if (farmerId.isEmpty || farmerId.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '❌ ID du fermier invalide: "$farmerId". Impossible de mettre à jour.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+        ),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
 
     try {
-      print('Tentative de mise à jour du fermier ID: ${widget.farmer.id}');
+      print('Tentative de mise à jour du fermier ID: $farmerId');
       print('Nom: ${_nameController.text.trim()}');
       print('Email: ${_emailController.text.trim()}');
-      
+
       // Mettre à jour les infos utilisateur uniquement
       final updatedUser = await _authService.updateUser(
-        id: widget.farmer.id,
+        id: farmerId,
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
-        password: _passwordController.text.isEmpty
-            ? null
-            : _passwordController.text,
+        password:
+            _passwordController.text.isEmpty ? null : _passwordController.text,
       );
 
       print('Résultat updateUser: $updatedUser');
 
-      if (updatedUser == null) {
-        throw Exception('Erreur lors de la mise à jour du fermier');
-      }
-
       setState(() => _loading = false);
 
       if (!mounted) return;
+
+      if (updatedUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                '❌ Erreur lors de la mise à jour du fermier. Veuillez réessayer.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Fermier mis à jour avec succès'),
+          content: Text('✅ Fermier mis à jour avec succès'),
           backgroundColor: Colors.green,
         ),
       );
+
       Navigator.pop(context, updatedUser);
     } catch (e) {
-      print('Erreur dans _save: $e');
       setState(() => _loading = false);
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text('❌ Erreur: ${e.toString()}'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
         ),
       );
     }
@@ -169,9 +200,12 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
                         children: [
                           Text(
                             'Informations utilisateur',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
@@ -187,7 +221,8 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
                           const SizedBox(height: 12),
                           TextFormField(
                             controller: _emailController,
-                            decoration: const InputDecoration(labelText: 'Email'),
+                            decoration:
+                                const InputDecoration(labelText: 'Email'),
                             keyboardType: TextInputType.emailAddress,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -225,9 +260,12 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
                         children: [
                           Text(
                             'Informations de la parcelle',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
@@ -246,12 +284,20 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
                           const SizedBox(height: 12),
                           DropdownButtonFormField<String>(
                             value: _soilType,
-                            decoration: const InputDecoration(labelText: 'Type de sol'),
+                            decoration:
+                                const InputDecoration(labelText: 'Type de sol'),
                             items: const [
-                              DropdownMenuItem(value: 'sableux', child: Text('Sol sableux')),
-                              DropdownMenuItem(value: 'argileux', child: Text('Sol argileux')),
-                              DropdownMenuItem(value: 'calcaire', child: Text('Sol calcaire')),
-                              DropdownMenuItem(value: 'limoneux', child: Text('Sol limoneux')),
+                              DropdownMenuItem(
+                                  value: 'sableux', child: Text('Sol sableux')),
+                              DropdownMenuItem(
+                                  value: 'argileux',
+                                  child: Text('Sol argileux')),
+                              DropdownMenuItem(
+                                  value: 'calcaire',
+                                  child: Text('Sol calcaire')),
+                              DropdownMenuItem(
+                                  value: 'limoneux',
+                                  child: Text('Sol limoneux')),
                             ],
                             onChanged: (value) {
                               if (value != null) {

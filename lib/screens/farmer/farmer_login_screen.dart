@@ -25,12 +25,12 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
   bool _loading = false;
   bool _obscurePassword = true;
   final AuthService _authService = AuthService();
-  
+
   late AnimationController _controller;
   late Animation<double> _animation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
-  
+
   // Pour la gestion de la langue
   late String currentLang;
 
@@ -41,28 +41,28 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _animation = Tween<double>(begin: 0, end: 15).animate(
       CurvedAnimation(
         parent: _controller,
         curve: Curves.easeInOut,
       ),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.3, 1.0, curve: Curves.easeInOut),
       ),
     );
-    
+
     _slideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
       ),
     );
-    
+
     _controller.forward();
   }
 
@@ -95,7 +95,7 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
             'en': 'Incorrect username or password',
             'ar': 'اسم المستخدم أو كلمة المرور غير صحيحة',
           }[currentLang]!;
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -112,8 +112,9 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
 
       if (mounted) {
         final user = loginResult['user'];
-        final String farmerName =
-            (user is Map && user['name'] is String) ? user['name'] as String : '';
+        final String farmerName = (user is Map && user['name'] is String)
+            ? user['name'] as String
+            : '';
 
         // Vérifier si le formulaire fermier est déjà complété
         final profile = await _authService.fetchFarmerProfile();
@@ -132,14 +133,12 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
           );
         } else {
           // Profil déjà rempli : aller directement au plan d'irrigation
-          final String location =
-              (profile?['parcelLocation'] ?? '').toString();
-          final String soilType = (profile?['soilType'] ?? '').toString();
-          final List<dynamic> cropsDynamic =
-              (profile?['crops'] as List<dynamic>?) ?? <dynamic>[];
+          final String location = profile['parcelLocation'].toString();
+          final String soilType = profile['soilType'].toString();
+          final List<dynamic> cropsDynamic = profile['crops'] as List<dynamic>;
           final List<String> cropTypes =
               cropsDynamic.map((e) => e.toString()).toList();
-          final num? areaNum = profile?['areaM2'] as num?;
+          final num areaNum = profile['areaM2'] as num;
 
           Navigator.pushReplacement(
             context,
@@ -148,9 +147,9 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                 location: location,
                 soilType: soilType,
                 cropTypes: cropTypes,
-                areaM2: areaNum?.toDouble(),
+                areaM2: areaNum.toDouble(),
                 farmerName: farmerName,
-                farmerAddress: profile?['farmerAddress']?.toString(),
+                farmerAddress: profile['farmerAddress'].toString(),
               ),
             ),
           );
@@ -165,7 +164,7 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
           'en': 'An error occurred. Please try again.',
           'ar': 'حدث خطأ. يرجى المحاولة مرة أخرى.',
         }[currentLang]!;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
@@ -190,13 +189,14 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
               image: AssetImage('assets/images/farmer.png'),
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.3), // Assombrir l'image pour mieux voir le texte
+                Colors.black.withOpacity(
+                    0.3), // Assombrir l'image pour mieux voir le texte
                 BlendMode.darken,
               ),
             ),
           ),
         ),
-        
+
         // Overlay gradient pour améliorer la lisibilité
         Container(
           decoration: BoxDecoration(
@@ -211,14 +211,14 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
             ),
           ),
         ),
-        
+
         // Effets de particules flottantes
         Positioned.fill(
           child: CustomPaint(
             painter: _BackgroundPainter(),
           ),
         ),
-        
+
         // Éléments décoratifs
         Positioned(
           top: -50,
@@ -232,7 +232,7 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
             ),
           ),
         ),
-        
+
         Positioned(
           bottom: -80,
           left: -50,
@@ -307,7 +307,7 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
               ),
             ),
           ),
-          
+
           // Animation des vagues
           Positioned.fill(
             child: AnimatedBuilder(
@@ -320,7 +320,7 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
               },
             ),
           ),
-          
+
           // Bouton de sortie flottant
           Positioned(
             top: 50,
@@ -342,12 +342,13 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                     print(' BOUTON CLIQUÉ - INK WELL DETECTÉ ');
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Bouton cliqué! Navigation vers Welcome...'),
+                        content:
+                            Text('Bouton cliqué! Navigation vers Welcome...'),
                         backgroundColor: Colors.green,
                         duration: Duration(seconds: 2),
                       ),
                     );
-                    
+
                     // Navigation simple
                     Navigator.pushReplacement(
                       context,
@@ -368,7 +369,7 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
               ),
             ),
           ),
-          
+
           // Contenu principal
           SafeArea(
             child: SingleChildScrollView(
@@ -376,7 +377,7 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
               child: Column(
                 children: [
                   const SizedBox(height: 40),
-                  
+
                   // Logo et titre avec animation
                   FadeTransition(
                     opacity: _fadeAnimation,
@@ -395,7 +396,8 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF4CAF50).withOpacity(0.3),
+                                  color:
+                                      const Color(0xFF4CAF50).withOpacity(0.3),
                                   blurRadius: 20,
                                   offset: const Offset(0, 10),
                                 ),
@@ -445,9 +447,9 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 40),
-                  
+
                   // Formulaire de connexion
                   FadeTransition(
                     opacity: _fadeAnimation,
@@ -479,20 +481,22 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              
+
                               // Champ nom d'utilisateur
                               TextFormField(
                                 controller: _usernameController,
                                 decoration: InputDecoration(
                                   labelText: loginTexts['username'],
-                                  prefixIcon: const Icon(Icons.person, color: Color(0xFF4CAF50)),
+                                  prefixIcon: const Icon(Icons.person,
+                                      color: Color(0xFF4CAF50)),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide.none,
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[100],
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 16, horizontal: 20),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -501,19 +505,22 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                                   return null;
                                 },
                               ),
-                              
+
                               const SizedBox(height: 20),
-                              
+
                               // Champ mot de passe
                               TextFormField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: InputDecoration(
                                   labelText: loginTexts['password'],
-                                  prefixIcon: const Icon(Icons.lock, color: Color(0xFF4CAF50)),
+                                  prefixIcon: const Icon(Icons.lock,
+                                      color: Color(0xFF4CAF50)),
                                   suffixIcon: IconButton(
                                     icon: Icon(
-                                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                      _obscurePassword
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
                                       color: Colors.grey[600],
                                     ),
                                     onPressed: () {
@@ -528,7 +535,8 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[100],
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 16, horizontal: 20),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -540,9 +548,9 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                                   return null;
                                 },
                               ),
-                              
+
                               const SizedBox(height: 24),
-                              
+
                               // Bouton de connexion
                               SizedBox(
                                 width: double.infinity,
@@ -556,7 +564,8 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     elevation: 5,
-                                    shadowColor: const Color(0xFF4CAF50).withOpacity(0.5),
+                                    shadowColor: const Color(0xFF4CAF50)
+                                        .withOpacity(0.5),
                                   ),
                                   child: _loading
                                       ? const SizedBox(
@@ -564,7 +573,9 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                                           height: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
                                           ),
                                         )
                                       : Text(
@@ -576,9 +587,9 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                                         ),
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 16),
-                              
+
                               // Lien mot de passe oublié
                               TextButton(
                                 onPressed: () {
@@ -598,9 +609,9 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Lien vers l'inscription
                   TextButton(
                     onPressed: () {
@@ -652,7 +663,7 @@ class WavePainter extends CustomPainter {
       final x = size.width * (0.1 + 0.8 * (i / 7));
       final y = size.height * (0.2 + 0.6 * ((i * 0.7) % 1));
       final radius = 20 + 30 * (i % 3);
-      
+
       canvas.drawCircle(
         Offset(x, y),
         radius.toDouble(),
@@ -668,7 +679,7 @@ class WavePainter extends CustomPainter {
 
     final path = Path();
     path.moveTo(0, size.height * 0.8);
-    
+
     // Animation de la vague basée sur animationValue
     for (double i = 0; i <= size.width; i += 10) {
       path.lineTo(
@@ -676,26 +687,26 @@ class WavePainter extends CustomPainter {
         size.height * 0.8 + sin((i + animationValue * 10) / 50) * 10,
       );
     }
-    
+
     // Dessiner la vague
     canvas.drawPath(path, wavePaint);
-    
+
     // Ajouter un effet de réflexion
     final reflectionPaint = Paint()
       ..color = Colors.white.withOpacity(0.02)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    
+
     final reflectionPath = Path();
     reflectionPath.moveTo(0, size.height * 0.85);
-    
+
     for (double i = 0; i <= size.width; i += 15) {
       reflectionPath.lineTo(
         i,
         size.height * 0.85 + sin((i - animationValue * 8) / 40) * 5,
       );
     }
-    
+
     canvas.drawPath(reflectionPath, reflectionPaint);
   }
 
@@ -715,7 +726,7 @@ class _BackgroundPainter extends CustomPainter {
       final x = size.width * (0.1 + 0.8 * (i / 7));
       final y = size.height * (0.2 + 0.6 * ((i * 0.7) % 1));
       final radius = 20 + 30 * (i % 3);
-      
+
       canvas.drawCircle(
         Offset(x, y),
         radius.toDouble(),

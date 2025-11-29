@@ -6,8 +6,12 @@ import '../models/user.dart';
 class AuthService {
   // ⚠️ CHANGEZ CETTE URL SELON VOTRE ENVIRONNEMENT
   static const String baseUrl =
-      'https://vq7xz4pc-3000.uks1.devtunnels.ms/api'; // Émulateur Android
+      'https://vq7xz4pc-3000.uks1.devtunnels.ms/api'; // Émulateur Android (actuellement inaccessible)
+  //static const String baseUrl = 'http://localhost:3000/api'; // Backend local
   // static const String baseUrl = 'http://192.168.1.X:3000/api'; // Téléphone physique
+
+  // Mode mock pour tester sans backend
+  static const bool useMockMode = true;
 
   // Stockage simple en mémoire pour le token (remplace flutter_secure_storage côté démo)
   static String? _inMemoryToken;
@@ -20,6 +24,32 @@ class AuthService {
     String role = 'farmer', // 'farmer', 'enterprise', 'admin'
     bool updateToken = true, // si false, on ne remplace pas le token courant
   }) async {
+    if (useMockMode) {
+      // Mode mock pour l'inscription
+      print('DEBUG REGISTER MOCK: name=$name, email=$email, role=$role');
+
+      // Simuler un délai réseau
+      await Future.delayed(Duration(milliseconds: 800));
+
+      // Créer un token factice
+      final mockToken = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
+      if (updateToken) {
+        _inMemoryToken = mockToken;
+      }
+
+      return {
+        'success': true,
+        'message': 'Utilisateur créé avec succès (mode mock)',
+        'user': User(
+          id: 'mock_${DateTime.now().millisecondsSinceEpoch}',
+          name: name,
+          email: email,
+          role: role,
+        ),
+        'token': mockToken,
+      };
+    }
+
     try {
       final url = '$baseUrl/users/register';
       print('URL register: $url');
@@ -341,9 +371,42 @@ class AuthService {
     required String email,
     String? password,
   }) async {
+    if (useMockMode) {
+      // Mode mock - simuler la mise à jour
+      print('DEBUG UPDATE MOCK: ID = "$id", Nom = "$name", Email = "$email"');
+
+      // Simuler un délai réseau
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Retourner un utilisateur mis à jour factice
+      return User(
+        id: id,
+        name: name,
+        email: email,
+        role: 'farmer',
+        parcelLocation: 'Nabeul, Tunisie',
+        soilType: 'limoneux',
+        crops: ['Tomate', 'Fraise'],
+        areaM2: 5000.0,
+      );
+    }
+
     try {
+      // Vérifier que l'ID n'est pas vide
+      if (id.isEmpty) {
+        print('Erreur updateUser: ID utilisateur vide');
+        return null;
+      }
+
+      print('DEBUG UPDATE: ID reçu = "$id" (longueur: ${id.length})');
+
       final token = await getToken();
       print('Token pour updateUser: $token');
+
+      if (token == null) {
+        print('Erreur updateUser: Token null');
+        return null;
+      }
 
       final body = <String, dynamic>{
         'name': name,
@@ -361,7 +424,7 @@ class AuthService {
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode(body),
       );
@@ -378,6 +441,12 @@ class AuthService {
         if (data is Map<String, dynamic>) {
           return User.fromJson(data);
         }
+      } else if (response.statusCode == 404) {
+        print('Erreur updateUser: Utilisateur non trouvé (404)');
+      } else if (response.statusCode == 401) {
+        print('Erreur updateUser: Non autorisé (401)');
+      } else {
+        print('Erreur updateUser: Status code ${response.statusCode}');
       }
 
       return null;

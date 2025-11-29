@@ -135,23 +135,28 @@ class NotificationService {
   }
 
   /// Ajoute des événements d'irrigation récurrents dans le calendrier
-  Future<bool> addIrrigationCalendarEvents({
+  Future<String?> addIrrigationCalendarEvents({
     required String crop,
     required int intervalDays,
     required DateTime startDate,
     required TimeOfDay reminderTime,
   }) async {
     if (kIsWeb) {
-      debugPrint('[WEB CALENDAR] Calendar integration not available on web');
-      return false;
+      // Sur le web, générer un texte à copier-coller dans le calendrier
+      final eventsText = _generateCalendarText(
+        crop: crop,
+        intervalDays: intervalDays,
+        startDate: startDate,
+        reminderTime: reminderTime,
+      );
+      return eventsText;
     }
 
     try {
       // Demander les permissions calendrier
       final permissions = await _calendarPlugin.requestPermissions();
       if (permissions.data == null || !permissions.data!) {
-        debugPrint('Calendar permission denied');
-        return false;
+        return 'Permission calendrier refusée. Veuillez autoriser l\'accès au calendrier dans les paramètres.';
       }
 
       // Récupérer les calendriers disponibles
@@ -159,8 +164,7 @@ class NotificationService {
       if (!calendarsResult.isSuccess ||
           calendarsResult.data == null ||
           calendarsResult.data!.isEmpty) {
-        debugPrint('No calendars found or error retrieving calendars');
-        return false;
+        return 'Aucun calendrier trouvé. Veuillez configurer un calendrier sur votre appareil.';
       }
 
       // Utiliser le premier calendrier disponible (généralement le calendrier principal)
@@ -196,18 +200,51 @@ class NotificationService {
 
         final createResult = await _calendarPlugin.createOrUpdateEvent(event);
         if (createResult == null || !createResult.isSuccess) {
-          debugPrint(
-              'Failed to create calendar event: ${createResult?.errors}');
-          return false;
+          return 'Erreur lors de la création des événements: ${createResult?.errors ?? 'Erreur inconnue'}';
         }
       }
 
       debugPrint(
           'Successfully created ${irrigationDays.length} irrigation calendar events');
-      return true;
+      return null; // Succès
     } catch (e) {
       debugPrint('Error creating calendar events: $e');
-      return false;
+      return 'Erreur lors de la création des événements calendrier: $e';
     }
+  }
+
+  /// Génère un texte formaté pour copier-coller dans le calendrier (version web)
+  String _generateCalendarText({
+    required String crop,
+    required int intervalDays,
+    required DateTime startDate,
+    required TimeOfDay reminderTime,
+  }) {
+    final events = <String>[];
+    var currentDate = startDate;
+
+    // Générer les 10 prochains événements
+    for (int i = 0; i < 10; i++) {
+      final formattedDate =
+          '${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}';
+      final formattedTime =
+          '${reminderTime.hour.toString().padLeft(2, '0')}:${reminderTime.minute.toString().padLeft(2, '0')}';
+      events.add('📅 $formattedDate à $formattedTime - 🌱 Irrigation $crop');
+      currentDate = currentDate.add(Duration(days: intervalDays));
+    }
+
+    return '''
+🌱 PLAN D'IRRIGATION - $crop
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fréquence: Tous les $intervalDays jours
+Heure: ${reminderTime.hour}:${reminderTime.minute.toString().padLeft(2, '0')}
+
+📅 PROCHAINS RAPPELS:
+${events.join('\n')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 Copiez-collez ces événements dans votre calendrier préféré!
+''';
   }
 }

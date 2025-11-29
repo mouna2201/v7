@@ -133,7 +133,6 @@ class _EnterpriseIrrigationPlanScreenState
         _isLoadingHistory = false;
       });
     } catch (e) {
-      print('Erreur chargement historique: $e');
       setState(() {
         _isLoadingHistory = false;
       });
@@ -318,7 +317,7 @@ class _EnterpriseIrrigationPlanScreenState
       );
 
       // Ajouter les événements dans le calendrier
-      final calendarSuccess =
+      final calendarResult =
           await NotificationService().addIrrigationCalendarEvents(
         crop: _getCropTranslation(widget.cropTypes.first),
         intervalDays: _recommendedInterval ?? 2,
@@ -326,7 +325,8 @@ class _EnterpriseIrrigationPlanScreenState
         reminderTime: _reminderTime,
       );
 
-      if (calendarSuccess) {
+      if (calendarResult == null) {
+        // Succès - événements ajoutés au calendrier
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
@@ -335,6 +335,9 @@ class _EnterpriseIrrigationPlanScreenState
             duration: Duration(seconds: 3),
           ),
         );
+      } else {
+        // Erreur ou version web - afficher le texte à copier
+        _showCalendarDialog(calendarResult);
       }
 
       setState(() {
@@ -363,6 +366,86 @@ class _EnterpriseIrrigationPlanScreenState
     final cropMultiplier =
         plan['cropType'].toString().toLowerCase() == 'tomate' ? 1.2 : 1.0;
     return (baseWaterPerSqm * area * cropMultiplier);
+  }
+
+  void _showCalendarDialog(String calendarText) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.calendar_today, color: _primaryColor),
+              SizedBox(width: 8),
+              Text('📅 Plan d\'irrigation'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Sur le web, copiez-collez ces événements dans votre calendrier :',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: SelectableText(
+                  calendarText,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                  SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Sur mobile, les événements seront ajoutés automatiquement.',
+                      style: TextStyle(fontSize: 12, color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Fermer'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Copier le texte dans le presse-papiers si possible
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('📋 Texte copié dans le presse-papiers!'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Text('📋 Copier'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<List<IrrigationPlanHistoryRecord>> _fetchIrrigationPlanHistoryForCrop(

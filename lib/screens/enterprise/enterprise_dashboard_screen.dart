@@ -17,8 +17,7 @@ class EnterpriseDashboardScreen extends StatefulWidget {
       _EnterpriseDashboardScreenState();
 }
 
-class _EnterpriseDashboardScreenState
-    extends State<EnterpriseDashboardScreen> {
+class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
   final AuthService _authService = AuthService();
   List<User> _farmers = [];
   bool _isLoading = true;
@@ -41,7 +40,6 @@ class _EnterpriseDashboardScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0F1A),
-
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -67,8 +65,7 @@ class _EnterpriseDashboardScreenState
               if (!mounted) return;
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const EnterpriseRoleScreen()),
+                MaterialPageRoute(builder: (_) => const EnterpriseRoleScreen()),
                 (route) => false,
               );
             },
@@ -97,124 +94,125 @@ class _EnterpriseDashboardScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            const Text(
-              "Bienvenue 👋",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            const Text(
-              "Gérez vos fermiers facilement.",
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-
-            const SizedBox(height: 22),
-
-            // ------------------------------------
-            //        CARD STATS PRINCIPALE
-            // ------------------------------------
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(26),
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFFB339F3),
-                    Color(0xFFFF8C3B),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
+                const Text(
+                  "Bienvenue 👋",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // LEFT SIDE
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Fermiers enregistrés",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "${_farmers.length}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                        ),
+                ),
+
+                const SizedBox(height: 4),
+
+                const Text(
+                  "Gérez vos fermiers facilement.",
+                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                ),
+
+                const SizedBox(height: 22),
+
+                // ------------------------------------
+                //        CARD STATS PRINCIPALE
+                // ------------------------------------
+                Container(
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(26),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFB339F3),
+                        Color(0xFFFF8C3B),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
-
-                  // BUTTON AJOUTER
-                  CustomButton(
-                    text: "Ajouter",
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const EnterpriseAddFarmerScreen()),
-                      );
-                      if (result is User) {
-                        setState(() {
-                          _farmers.add(result);
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ------------------------------------
-            //        LISTE FERMERS
-            // ------------------------------------
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.purpleAccent,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // LEFT SIDE
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Fermiers enregistrés",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "${_farmers.length}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                  : _farmers.isEmpty
+
+                      // BUTTON AJOUTER
+                      CustomButton(
+                        text: "Ajouter",
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const EnterpriseAddFarmerScreen()),
+                          );
+                          if (result is User) {
+                            setState(() {
+                              _farmers.add(result);
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // ------------------------------------
+                //        LISTE FERMERS
+                // ------------------------------------
+                Expanded(
+                  child: _isLoading
                       ? const Center(
-                          child: Text(
-                            "Aucun fermier pour le moment.",
-                            style:
-                                TextStyle(color: Colors.white54, fontSize: 16),
+                          child: CircularProgressIndicator(
+                            color: Colors.purpleAccent,
                           ),
                         )
-                      : ListView.separated(
-                          itemCount: _farmers.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 18),
-                          itemBuilder: (context, index) {
-                            return _buildFarmerCard(
-                                context, _farmers[index], index);
-                          },
-                        ),
-            ),
-          ],
+                      : _farmers.isEmpty
+                          ? const Center(
+                              child: Text(
+                                "Aucun fermier pour le moment.",
+                                style: TextStyle(
+                                    color: Colors.white54, fontSize: 16),
+                              ),
+                            )
+                          : ListView.separated(
+                              itemCount: _farmers.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 18),
+                              itemBuilder: (context, index) {
+                                return _buildFarmerCard(
+                                    context, _farmers[index], index);
+                              },
+                            ),
+                ),
+              ],
             ),
           ),
         ],
@@ -225,8 +223,7 @@ class _EnterpriseDashboardScreenState
   // --------------------------------------------------------------------
   // --------------------- FARMER CARD (IMPROVED) -----------------------
   // --------------------------------------------------------------------
-  Widget _buildFarmerCard(
-      BuildContext context, User farmer, int index) {
+  Widget _buildFarmerCard(BuildContext context, User farmer, int index) {
     return GestureDetector(
       onTap: () => _openFarmerParcel(context, farmer),
       child: Container(
@@ -250,7 +247,6 @@ class _EnterpriseDashboardScreenState
             ),
           ],
         ),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -312,13 +308,11 @@ class _EnterpriseDashboardScreenState
                           ),
                           actions: [
                             TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(context, false),
+                                onPressed: () => Navigator.pop(context, false),
                                 child: const Text("Annuler",
                                     style: TextStyle(color: Colors.white))),
                             TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(context, true),
+                              onPressed: () => Navigator.pop(context, true),
                               child: const Text("Supprimer",
                                   style: TextStyle(color: Colors.red)),
                             ),
@@ -355,14 +349,13 @@ class _EnterpriseDashboardScreenState
   }
 
   // --------------------------------------------------------------------
-  //         OPEN IRRIGATION PLAN 
+  //         OPEN IRRIGATION PLAN
   // --------------------------------------------------------------------
-  Future<void> _openFarmerParcel(
-      BuildContext context, User farmer) async {
+  Future<void> _openFarmerParcel(BuildContext context, User farmer) async {
     // Vérifier d'abord si on a toutes les données nécessaires
-    if (farmer.parcelLocation != null && 
-        farmer.soilType != null && 
-        farmer.crops.isNotEmpty && 
+    if (farmer.parcelLocation != null &&
+        farmer.soilType != null &&
+        farmer.crops.isNotEmpty &&
         farmer.areaM2 != null) {
       _navigateToIrrigationScreen(
         context,
@@ -371,7 +364,8 @@ class _EnterpriseDashboardScreenState
         farmer.crops,
         farmer.areaM2!,
         farmerName: farmer.name,
-        farmerAddress: farmer.email, // Utiliser l'email comme adresse pour l'instant
+        farmerAddress:
+            farmer.email, // Utiliser l'email comme adresse pour l'instant
       );
       return;
     }
@@ -380,7 +374,7 @@ class _EnterpriseDashboardScreenState
     try {
       final profile = await _authService.fetchFarmerProfileById(farmer.id);
       if (profile != null) {
-        final updatedFarmer = User.fromJson(profile is Map ? profile : {});
+        final updatedFarmer = User.fromJson(profile);
         _navigateToIrrigationScreen(
           context,
           updatedFarmer.parcelLocation ?? 'Bizerte',
@@ -418,7 +412,7 @@ class _EnterpriseDashboardScreenState
     double areaM2, {
     String? farmerName,
     String? farmerAddress,
-  } ) {
+  }) {
     Navigator.push(
       context,
       MaterialPageRoute(
