@@ -295,23 +295,22 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       'Melon': const Color(0xFF8BC34A), // Vert melon
       'Pastèque': const Color(0xFF4CAF50), // Vert pastèque
     };
-    
+
     // Prendre la première culture si plusieurs
-    final firstCrop = widget.cropTypes.isNotEmpty 
-        ? widget.cropTypes.first.toLowerCase()
-        : '';
-    
+    final firstCrop =
+        widget.cropTypes.isNotEmpty ? widget.cropTypes.first.toLowerCase() : '';
+
     // Chercher une correspondance exacte
     for (var entry in cropColors.entries) {
       if (entry.key.toLowerCase() == firstCrop) {
         return entry.value;
       }
     }
-    
+
     // Couleur par défaut selon le thème
-    return _isDarkTheme 
-      ? const Color(0xFF2E7D32).withOpacity(0.8)
-      : const Color(0xFF4CAF50).withOpacity(0.9);
+    return _isDarkTheme
+        ? const Color(0xFF2E7D32).withOpacity(0.8)
+        : const Color(0xFF4CAF50).withOpacity(0.9);
   }
 
   @override
@@ -395,8 +394,9 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       final areaPerCrop = area / widget.cropTypes.length;
 
       // Enregistrer pour chaque type de culture
-      print('💾 Début de l\'enregistrement de l\'historique pour ${widget.cropTypes.length} culture(s)');
-      
+      print(
+          '💾 Début de l\'enregistrement de l\'historique pour ${widget.cropTypes.length} culture(s)');
+
       for (final cropType in widget.cropTypes) {
         // Extraire la quantité d'eau du plan si disponible, sinon calculer approximativement
         double waterAmount = _extractWaterAmountFromPlan(plan, areaPerCrop);
@@ -418,7 +418,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       }
 
       print('💾 Fin de l\'enregistrement de l\'historique');
-      
+
       // Recharger l'historique après la sauvegarde (seulement si on est sur la page d'historique)
       // _loadCropHistory(); // Commenté car on n'est pas sur la page d'historique
 
@@ -1010,7 +1010,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: _getCropTypeColor().withOpacity(0.1), // Couleur de culture avec transparence
+                  color: _getCropTypeColor()
+                      .withOpacity(0.1), // Couleur de culture avec transparence
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: _getCropTypeColor().withOpacity(0.4),
@@ -1063,7 +1064,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _getCropTypeColor().withOpacity(0.1), // Couleur de culture avec transparence
+                color: _getCropTypeColor()
+                    .withOpacity(0.1), // Couleur de culture avec transparence
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _getCropTypeColor().withOpacity(0.3),
@@ -1102,8 +1104,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(_getCropTypeColor()),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                _getCropTypeColor()),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -1179,7 +1181,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     );
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -2318,7 +2321,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 14),
+                        horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
                       gradient: LinearGradient(
@@ -2356,11 +2359,11 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                             child: const Icon(
                               Icons.play_arrow_rounded,
                               color: Colors.white,
-                              size: 26,
+                              size: 22,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -2369,14 +2372,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 13,
                               ),
                             ),
                             Text(
                               "Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}",
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
-                                fontSize: 12,
+                                fontSize: 10,
                               ),
                             ),
                           ],
