@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -15,7 +16,6 @@ import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/animated_humidity_circle.dart';
-import '../../widgets/custom_button.dart';
 import '../welcome/welcome_screen.dart';
 import 'watering_day_detail_screen.dart';
 import 'crop_history_screen.dart';
@@ -438,12 +438,337 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           backgroundColor: _getCropTypeColor(),
         ),
       );
+
+      // Afficher le résultat détaillé de Mistral dans une boîte de dialogue
+      _showMistralResultDialog(plan, crop);
     } catch (e) {
       setState(() {
         _mistralError = e.toString();
         _isLoadingMistral = false;
       });
     }
+  }
+
+  void _showMistralResultDialog(String plan, String crop) {
+    final summary = _extractPlanSummary(plan);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.analytics,
+                color: _getCropTypeColor(),
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Plan d\'arrosage - ${_getCropTranslation(crop)}',
+                style: TextStyle(
+                  color: _getCropTypeColor(),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Résumé essentiel
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '📋 Résumé du plan:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _getCropTypeColor(),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...summary.map((item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '• ',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: _getCropTypeColor(),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      item,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        height: 1.4,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Jours d'arrosage
+                  if (_mistralWaterDaysKeys != null &&
+                      _mistralWaterDaysKeys!.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: _getCropTypeColor().withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            color: _getCropTypeColor(),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '🗓️ Jours: ${_mistralWaterDaysKeys!.map((day) => day.substring(0, 1).toUpperCase() + day.substring(1)).join(', ')}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _getCropTypeColor(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 12),
+
+                  // Option pour voir le texte complet
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _showFullMistralPlan(plan, crop);
+                    },
+                    icon: Icon(
+                      Icons.expand_more,
+                      color: _getCropTypeColor(),
+                      size: 16,
+                    ),
+                    label: Text(
+                      'Voir le texte complet',
+                      style: TextStyle(
+                        color: _getCropTypeColor(),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Fermer',
+                style: TextStyle(
+                  color: _getCropTypeColor(),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Copier le résumé dans le presse-papiers
+                final summaryText =
+                    'Plan d\'arrosage - ${_getCropTranslation(crop)}:\n\n${summary.join('\n')}\n\nJours: ${_mistralWaterDaysKeys?.map((day) => day.substring(0, 1).toUpperCase() + day.substring(1)).join(', ') ?? 'Non spécifiés'}';
+                Clipboard.setData(ClipboardData(text: summaryText));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('✅ Résumé copié dans le presse-papiers'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _getCropTypeColor(),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Copier'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<String> _extractPlanSummary(String plan) {
+    final List<String> summary = [];
+
+    // Extraire la fréquence d'arrosage
+    final frequencyRegex =
+        RegExp(r'arrosage.*?(\d+)\s*jour', caseSensitive: false);
+    final frequencyMatch = frequencyRegex.firstMatch(plan);
+    if (frequencyMatch != null) {
+      summary.add('Fréquence: Tous les ${frequencyMatch.group(1)} jours');
+    }
+
+    // Extraire la quantité d'eau
+    final waterRegex = RegExp(r'(\d+)\s*(L|litres|ml)', caseSensitive: false);
+    final waterMatch = waterRegex.firstMatch(plan);
+    if (waterMatch != null) {
+      summary.add(
+          'Quantité d\'eau: ${waterMatch.group(1)} ${waterMatch.group(2)}');
+    }
+
+    // Extraire les heures recommandées
+    final hourRegex = RegExp(r'(\d{1,2})h?(\d{0,2})?', caseSensitive: false);
+    final hourMatch = hourRegex.firstMatch(plan);
+    if (hourMatch != null) {
+      final hour = hourMatch.group(1);
+      final minute = hourMatch.group(2) ?? '00';
+      summary.add('Heure recommandée: ${hour}h${minute}');
+    }
+
+    // Extraire les conditions spéciales
+    if (plan.toLowerCase().contains('matin')) {
+      summary.add('Privilégier l\'arrosage matinal');
+    }
+    if (plan.toLowerCase().contains('soir')) {
+      summary.add('Arrosage du soir possible');
+    }
+    if (plan.toLowerCase().contains('éviter')) {
+      summary.add('Éviter les heures chaudes');
+    }
+
+    // Extraire les recommandations principales
+    final lines = plan.split('\n');
+    for (final line in lines) {
+      if (line.length > 10 &&
+          line.length < 100 &&
+          (line.contains('recommand') ||
+              line.contains('conseil') ||
+              line.contains('important'))) {
+        summary.add(line.trim());
+        if (summary.length >= 4) break; // Limiter à 4 points essentiels
+      }
+    }
+
+    // Si aucun résumé trouvé, ajouter un message par défaut
+    if (summary.isEmpty) {
+      summary.add('Plan d\'arrosage personnalisé généré');
+      summary.add('Basé sur les conditions actuelles');
+      summary.add('Fréquence adaptée à votre culture');
+    }
+
+    return summary.take(5).toList(); // Maximum 5 points
+  }
+
+  void _showFullMistralPlan(String plan, String crop) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.article,
+                color: _getCropTypeColor(),
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Plan complet - ${_getCropTranslation(crop)}',
+                style: TextStyle(
+                  color: _getCropTypeColor(),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Text(
+                plan,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Fermer',
+                style: TextStyle(
+                  color: _getCropTypeColor(),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: plan));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('✅ Plan complet copié'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _getCropTypeColor(),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Copier tout'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _loadWeatherForLocation() async {
@@ -488,128 +813,6 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   void dispose() {
     _mqttService.dispose();
     super.dispose();
-  }
-
-  Widget _buildWeatherAnimatedIcon() {
-    final description = _currentWeather?.description.toLowerCase() ?? '';
-
-    bool isRain = description.contains('pluie') || description.contains('rain');
-    bool isCloudy = description.contains('nuage') ||
-        description.contains('cloud') ||
-        description.contains('couvert') ||
-        description.contains('overcast');
-
-    if (_currentWeather == null) {
-      return const Icon(
-        Icons.cloud,
-        color: Colors.blue,
-        size: 24,
-      );
-    }
-
-    if (isRain) {
-      return SizedBox(
-        width: 32,
-        height: 32,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 1000),
-          curve: Curves.easeInOut,
-          onEnd: () {
-            if (mounted) {
-              setState(() {});
-            }
-          },
-          builder: (context, value, child) {
-            final dropOffset = 6 * value;
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Positioned(
-                  top: 2,
-                  left: 4,
-                  child: Icon(
-                    Icons.cloud,
-                    color: Colors.blue,
-                    size: 24,
-                  ),
-                ),
-                Positioned(
-                  top: 16 + dropOffset,
-                  left: 8,
-                  child: const Icon(
-                    Icons.water_drop,
-                    color: Colors.lightBlueAccent,
-                    size: 14,
-                  ),
-                ),
-                Positioned(
-                  top: 16 + (dropOffset * 0.6),
-                  left: 16,
-                  child: const Icon(
-                    Icons.water_drop,
-                    color: Colors.lightBlueAccent,
-                    size: 12,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    }
-
-    if (isCloudy) {
-      return SizedBox(
-        width: 32,
-        height: 32,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: -2, end: 2),
-          duration: const Duration(milliseconds: 1200),
-          curve: Curves.easeInOut,
-          onEnd: () {
-            if (mounted) {
-              setState(() {});
-            }
-          },
-          builder: (context, value, child) {
-            return Transform.translate(
-              offset: Offset(value, 0),
-              child: const Icon(
-                Icons.cloud,
-                color: Colors.blue,
-                size: 24,
-              ),
-            );
-          },
-        ),
-      );
-    }
-
-    return SizedBox(
-      width: 32,
-      height: 32,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.9, end: 1.1),
-        duration: const Duration(milliseconds: 1000),
-        curve: Curves.easeInOut,
-        onEnd: () {
-          if (mounted) {
-            setState(() {});
-          }
-        },
-        builder: (context, value, child) {
-          return Transform.scale(
-            scale: value,
-            child: const Icon(
-              Icons.wb_sunny,
-              color: Colors.orangeAccent,
-              size: 24,
-            ),
-          );
-        },
-      ),
-    );
   }
 
   Widget _buildWeatherCardGreenStyle(
