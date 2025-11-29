@@ -9,6 +9,7 @@ class L10n {
   static const List<Locale> supportedLocales = [
     Locale('en'),
     Locale('ar'),
+    Locale('fr'),
   ];
 
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = [

@@ -355,7 +355,8 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data is Map<String, dynamic> && data['user'] is Map<String, dynamic>) {
+        if (data is Map<String, dynamic> &&
+            data['user'] is Map<String, dynamic>) {
           return User.fromJson(data['user'] as Map<String, dynamic>);
         }
         if (data is Map<String, dynamic>) {
@@ -390,6 +391,65 @@ class AuthService {
     }
   }
 
+  // 👨‍🌾 PROFIL DU SUPERVISEUR (FORMULAIRE PARCELLE)
+  Future<Map<String, dynamic>?> fetchSupervisorProfile() async {
+    try {
+      final token = await getToken();
+      if (token == null) return null;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/supervisor/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      print('Erreur fetchSupervisorProfile: $e');
+      return null;
+    }
+  }
+
+  Future<bool> updateSupervisorProfile({
+    required String parcelLocation,
+    required String soilType,
+    required List<String> crops,
+    required double hectares,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/supervisor/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'parcelLocation': parcelLocation,
+          'soilType': soilType,
+          'crops': crops,
+          'hectares': hectares,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erreur updateSupervisorProfile: $e');
+      return false;
+    }
+  }
+
   // 📱 MÉTHODES UTILITAIRES
   Future<String?> getToken() async {
     return _inMemoryToken;
@@ -401,5 +461,102 @@ class AuthService {
 
   Future<bool> isLoggedIn() async {
     return _inMemoryToken != null;
+  }
+
+  // 🌾 HISTORIQUE DES CULTURES
+  Future<List<dynamic>> fetchCropHistory() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        print('❌ Token manquant pour fetchCropHistory');
+        return [];
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/crop-history'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print('📡 Réponse API crop-history: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('📦 Données brutes: $data');
+
+        if (data is Map<String, dynamic>) {
+          // Vérifier plusieurs formats possibles de réponse
+          if (data['data'] is List) {
+            print(
+                '✅ Données trouvées dans data: ${(data['data'] as List).length}');
+            return data['data'] as List;
+          } else if (data['history'] is List) {
+            print(
+                '✅ Données trouvées dans history: ${(data['history'] as List).length}');
+            return data['history'] as List;
+          } else if (data['results'] is List) {
+            print(
+                '✅ Données trouvées dans results: ${(data['results'] as List).length}');
+            return data['results'] as List;
+          } else if (data is List) {
+            print('✅ Données directement dans la liste: ${data.length}');
+            return data as List;
+          }
+        } else if (data is List) {
+          print('✅ Données directement dans la liste: ${data.length}');
+          return data;
+        }
+
+        print('⚠️ Format de données non reconnu');
+      } else if (response.statusCode == 404) {
+        print(
+            '⚠️ Endpoint /api/crop-history non implémenté - Fonctionnalité en attente du backend');
+        // Retourner une liste vide pour éviter de casser l'interface
+        return [];
+      } else {
+        print('❌ Erreur HTTP: ${response.statusCode} - ${response.body}');
+      }
+
+      return [];
+    } catch (e, stackTrace) {
+      print('❌ Erreur fetchCropHistory: $e');
+      print('❌ Stack trace: $stackTrace');
+      return [];
+    }
+  }
+
+  Future<bool> saveCropHistory({
+    required String location,
+    required String cropType,
+    required double area,
+    required String soilType,
+    required double waterAmount,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/crop-history'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'location': location,
+          'cropType': cropType,
+          'area': area,
+          'soilType': soilType,
+          'waterAmount': waterAmount,
+        }),
+      );
+
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Erreur saveCropHistory: $e');
+      return false;
+    }
   }
 }
