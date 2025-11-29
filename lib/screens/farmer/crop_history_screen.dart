@@ -206,70 +206,207 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // En-tête avec type de culture et date
           Row(
             children: [
-              Icon(
-                _getCropIcon(record.cropType),
-                color: cropColors['primary'],
-                size: 24,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: cropColors['primary']!.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  _getCropIcon(record.cropType),
+                  color: cropColors['primary'],
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  record.cropType,
-                  style: TextStyle(
-                    color: _isDarkTheme ? Colors.white : Colors.black87,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Text(
-                _formatDate(record.createdAt),
-                style: TextStyle(
-                  color: _isDarkTheme ? Colors.white60 : Colors.black54,
-                  fontSize: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.cropType,
+                      style: TextStyle(
+                        color: _isDarkTheme ? Colors.white : Colors.black87,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDate(record.createdAt),
+                      style: TextStyle(
+                        color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildHistoryDetail(
-                  Icons.location_on,
-                  'Localisation',
-                  record.location,
+          // Informations principales
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _isDarkTheme 
+                  ? Colors.white.withOpacity(0.05)
+                  : cropColors['primary']!.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                // Localisation
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      size: 20,
+                      color: cropColors['primary'],
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Localisation',
+                            style: TextStyle(
+                              color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            record.location,
+                            style: TextStyle(
+                              color: _isDarkTheme ? Colors.white : Colors.black87,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Expanded(
-                child: _buildHistoryDetail(
-                  Icons.grass,
-                  'Type de sol',
-                  _getSoilTypeTranslation(record.soilType),
+                const SizedBox(height: 12),
+                // Type de sol
+                Row(
+                  children: [
+                    Icon(
+                      Icons.grass,
+                      size: 20,
+                      color: cropColors['primary'],
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Type de sol',
+                            style: TextStyle(
+                              color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _getSoilTypeTranslation(record.soilType),
+                            style: TextStyle(
+                              color: _isDarkTheme ? Colors.white : Colors.black87,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildHistoryDetail(
-                  Icons.square_foot,
-                  'Métrage',
-                  '${record.area.toStringAsFixed(0)} m²',
+                const SizedBox(height: 12),
+                // Métrage et Quantité d'eau
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.square_foot,
+                            size: 20,
+                            color: cropColors['primary'],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Métrage',
+                                  style: TextStyle(
+                                    color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${record.area.toStringAsFixed(0)} m²',
+                                  style: TextStyle(
+                                    color: _isDarkTheme ? Colors.white : Colors.black87,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.water_drop,
+                            size: 20,
+                            color: cropColors['primary'],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Quantité d\'eau',
+                                  style: TextStyle(
+                                    color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${record.waterAmount.toStringAsFixed(0)} L',
+                                  style: TextStyle(
+                                    color: _isDarkTheme ? Colors.white : Colors.black87,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Expanded(
-                child: _buildHistoryDetail(
-                  Icons.water_drop,
-                  'Quantité d\'eau',
-                  '${record.waterAmount.toStringAsFixed(0)} L',
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

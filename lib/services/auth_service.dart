@@ -472,8 +472,12 @@ class AuthService {
         return [];
       }
 
+      final url = '$baseUrl/crop-history';
+      print('🔗 URL appelée: $url');
+      print('🔑 Token présent: ${token.substring(0, 20)}...');
+
       final response = await http.get(
-        Uri.parse('$baseUrl/crop-history'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -481,6 +485,7 @@ class AuthService {
       );
 
       print('📡 Réponse API crop-history: ${response.statusCode}');
+      print('📄 Body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -536,26 +541,51 @@ class AuthService {
   }) async {
     try {
       final token = await getToken();
-      if (token == null) return false;
+      if (token == null) {
+        print('❌ Token manquant pour saveCropHistory');
+        return false;
+      }
+
+      final url = '$baseUrl/crop-history';
+      final body = {
+        'location': location,
+        'cropType': cropType,
+        'area': area,
+        'soilType': soilType,
+        'waterAmount': waterAmount,
+      };
+
+      print('💾 Sauvegarde historique:');
+      print('   📍 Localisation: $location');
+      print('   🌾 Type de culture: $cropType');
+      print('   📏 Métrage: $area m²');
+      print('   🌱 Type de sol: $soilType');
+      print('   💧 Quantité d\'eau: $waterAmount L');
+      print('   🔗 URL: $url');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/crop-history'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          'location': location,
-          'cropType': cropType,
-          'area': area,
-          'soilType': soilType,
-          'waterAmount': waterAmount,
-        }),
+        body: jsonEncode(body),
       );
 
-      return response.statusCode == 201;
-    } catch (e) {
-      print('Erreur saveCropHistory: $e');
+      print('📡 Réponse sauvegarde: ${response.statusCode}');
+      
+      if (response.statusCode == 201) {
+        print('✅ Historique sauvegardé avec succès');
+        final responseData = jsonDecode(response.body);
+        print('📦 Données sauvegardées: $responseData');
+        return true;
+      } else {
+        print('❌ Erreur sauvegarde: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e, stackTrace) {
+      print('❌ Erreur saveCropHistory: $e');
+      print('❌ Stack trace: $stackTrace');
       return false;
     }
   }
