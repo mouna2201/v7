@@ -395,21 +395,32 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
       final areaPerCrop = area / widget.cropTypes.length;
 
       // Enregistrer pour chaque type de culture
+      print('💾 Début de l\'enregistrement de l\'historique pour ${widget.cropTypes.length} culture(s)');
+      
       for (final cropType in widget.cropTypes) {
         // Extraire la quantité d'eau du plan si disponible, sinon calculer approximativement
         double waterAmount = _extractWaterAmountFromPlan(plan, areaPerCrop);
 
-        await _authService.saveCropHistory(
+        print('💾 Enregistrement historique pour: $cropType');
+        final success = await _authService.saveCropHistory(
           location: widget.location,
           cropType: cropType,
           area: areaPerCrop,
           soilType: widget.soilType,
           waterAmount: waterAmount,
         );
+
+        if (success) {
+          print('✅ Historique sauvegardé avec succès pour: $cropType');
+        } else {
+          print('❌ Échec de la sauvegarde pour: $cropType');
+        }
       }
 
-      // Recharger l'historique après la sauvegarde
-      _loadCropHistory();
+      print('💾 Fin de l\'enregistrement de l\'historique');
+      
+      // Recharger l'historique après la sauvegarde (seulement si on est sur la page d'historique)
+      // _loadCropHistory(); // Commenté car on n'est pas sur la page d'historique
 
       NotificationService().scheduleIrrigationReminder(
         crop: _getCropTranslation(crop),
