@@ -84,7 +84,11 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
     setState(() => _loading = true);
 
     try {
-      // 1. Mettre à jour les infos utilisateur
+      print('Tentative de mise à jour du fermier ID: ${widget.farmer.id}');
+      print('Nom: ${_nameController.text.trim()}');
+      print('Email: ${_emailController.text.trim()}');
+      
+      // Mettre à jour les infos utilisateur uniquement
       final updatedUser = await _authService.updateUser(
         id: widget.farmer.id,
         name: _nameController.text.trim(),
@@ -94,59 +98,24 @@ class _EnterpriseEditFarmerScreenState extends State<EnterpriseEditFarmerScreen>
             : _passwordController.text,
       );
 
+      print('Résultat updateUser: $updatedUser');
+
       if (updatedUser == null) {
         throw Exception('Erreur lors de la mise à jour du fermier');
       }
-
-      // 2. Mettre à jour les infos de la parcelle
-      final cropsList = _parcelCropsController.text
-          .split(',')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-
-      final area = double.tryParse(_parcelAreaController.text.trim());
-      if (area == null || area <= 0) {
-        throw Exception('Veuillez entrer une surface valide');
-      }
-
-      // Pour mettre à jour le profil d'un autre utilisateur, on doit utiliser une méthode admin
-      // Pour l'instant, on utilise updateFarmerProfile qui met à jour le profil de l'utilisateur connecté
-      // Dans un cas réel, il faudrait une méthode admin pour mettre à jour le profil d'un autre utilisateur
-      final parcelUpdated = await _authService.updateFarmerProfile(
-        parcelLocation: _parcelLocationController.text.trim(),
-        soilType: _soilType,
-        crops: cropsList,
-        areaM2: area,
-      );
-
-      if (!parcelUpdated) {
-        throw Exception('Erreur lors de la mise à jour de la parcelle');
-      }
-
-      // Créer l'utilisateur mis à jour avec les nouvelles données
-      final finalUser = User(
-        id: widget.farmer.id,
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        role: widget.farmer.role,
-        parcelLocation: _parcelLocationController.text.trim(),
-        soilType: _soilType,
-        crops: cropsList,
-        areaM2: area,
-      );
 
       setState(() => _loading = false);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Fermier et parcelle mis à jour avec succès'),
+          content: Text('Fermier mis à jour avec succès'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context, finalUser);
+      Navigator.pop(context, updatedUser);
     } catch (e) {
+      print('Erreur dans _save: $e');
       setState(() => _loading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

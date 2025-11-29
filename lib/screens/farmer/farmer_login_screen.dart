@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/auth_service.dart';
 import '../../providers/parcel_provider.dart';
-import 'farmer_form_screen.dart';
-import 'irrigation_plan_screen.dart';
+import './farmer_form_screen.dart';
+import './irrigation_plan_screen.dart';
 import '../../presentation/providers/language_provider.dart';
+import './register_screen.dart';
+import '../welcome/welcome_screen.dart';
 
 class FarmerLoginScreen extends ConsumerStatefulWidget {
   const FarmerLoginScreen({super.key});
@@ -317,6 +319,54 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
             ),
           ),
           
+          // Bouton de sortie flottant
+          Positioned(
+            top: 50,
+            left: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.8),
+                  width: 3,
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    print(' BOUTON CLIQUÉ - INK WELL DETECTÉ ');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Bouton cliqué! Navigation vers Welcome...'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                    
+                    // Navigation simple
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const WelcomeScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    child: const Icon(
+                      Icons.home,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
           // Contenu principal
           SafeArea(
             child: SingleChildScrollView(
@@ -552,7 +602,12 @@ class _FarmerLoginScreenState extends ConsumerState<FarmerLoginScreen>
                   // Lien vers l'inscription
                   TextButton(
                     onPressed: () {
-                      // TODO: Naviguer vers l'écran d'inscription
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FarmerRegisterScreen(),
+                        ),
+                      );
                     },
                     child: Text(
                       loginTexts['noAccount']!,
