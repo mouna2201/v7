@@ -388,7 +388,14 @@ class _FarmerRegisterScreenState extends State<FarmerRegisterScreen> {
       
       print('Inscription réussie!');
       _showSnackbar('Compte créé avec succès !');
-      Navigator.pop(context); // retour vers login
+      
+      // Navigation directe vers le formulaire de parcelle
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FarmerFormScreen(farmerName: name),
+        ),
+      );
     } catch (e) {
       print('Exception lors de l\'inscription: $e');
       setState(() => _loading = false);

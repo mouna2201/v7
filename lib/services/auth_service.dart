@@ -21,8 +21,12 @@ class AuthService {
     bool updateToken = true, // si false, on ne remplace pas le token courant
   }) async {
     try {
+      final url = '$baseUrl/users/register';
+      print('URL register: $url');
+      print('Données register: name=$name, email=$email, role=$role');
+
       final response = await http.post(
-        Uri.parse('$baseUrl/users/register'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': name,
@@ -31,6 +35,9 @@ class AuthService {
           'role': role,
         }),
       );
+
+      print('Status code register: ${response.statusCode}');
+      print('Response body register: ${response.body}');
 
       final data = jsonDecode(response.body);
 
@@ -48,13 +55,14 @@ class AuthService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Erreur inscription',
+          'message': data['message'] ?? 'Erreur lors de l\'inscription',
         };
       }
     } catch (e) {
+      print('Erreur register: $e');
       return {
         'success': false,
-        'message': 'Erreur de connexion au serveur: $e',
+        'message': 'Erreur technique: $e',
       };
     }
   }
@@ -335,6 +343,7 @@ class AuthService {
   }) async {
     try {
       final token = await getToken();
+      print('Token pour updateUser: $token');
 
       final body = <String, dynamic>{
         'name': name,
@@ -344,14 +353,21 @@ class AuthService {
         body['password'] = password;
       }
 
+      final url = '$baseUrl/users/$id';
+      print('URL de mise à jour: $url');
+      print('Corps de la requête: $body');
+
       final response = await http.put(
-        Uri.parse('$baseUrl/users/$id'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
         },
         body: jsonEncode(body),
       );
+
+      print('Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
