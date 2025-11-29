@@ -273,6 +273,47 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     return records;
   }
 
+  Color _getCropTypeColor() {
+    // Couleurs selon le type de culture
+    final Map<String, Color> cropColors = {
+      'Fraise': const Color(0xFFE91E63), // Rose rouge
+      'Tomate': const Color(0xFFFF5722), // Orange rouge
+      'Pomme de terre': const Color(0xFF795548), // Brun
+      'Maïs': const Color(0xFFFFC107), // Jaune doré
+      'Blé': const Color(0xFFFFEB3B), // Jaune clair
+      'Orge': const Color(0xFFD4A017), // Or
+      'Laitue': const Color(0xFF4CAF50), // Vert
+      'Carotte': const Color(0xFFFF6F00), // Orange
+      'Betterave': const Color(0xFF8E24AA), // Violet
+      'Poivron': const Color(0xFF4CAF50), // Vert
+      'Courgette': const Color(0xFF689F38), // Vert olive
+      'Citron': const Color(0xFFCDDC39), // Vert citron
+      'Orange': const Color(0xFFFF9800), // Orange
+      'Pêche': const Color(0xFFFFAB91), // Pêche
+      'Abricot': const Color(0xFFFF7043), // Abricot
+      'Raisin': const Color(0xFF9C27B0), // Violet
+      'Melon': const Color(0xFF8BC34A), // Vert melon
+      'Pastèque': const Color(0xFF4CAF50), // Vert pastèque
+    };
+    
+    // Prendre la première culture si plusieurs
+    final firstCrop = widget.cropTypes.isNotEmpty 
+        ? widget.cropTypes.first.toLowerCase()
+        : '';
+    
+    // Chercher une correspondance exacte
+    for (var entry in cropColors.entries) {
+      if (entry.key.toLowerCase() == firstCrop) {
+        return entry.value;
+      }
+    }
+    
+    // Couleur par défaut selon le thème
+    return _isDarkTheme 
+      ? const Color(0xFF2E7D32).withOpacity(0.8)
+      : const Color(0xFF4CAF50).withOpacity(0.9);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -383,7 +424,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
           content: Text(
             "✅ Plan d'arrosage IA démarré ! Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}.",
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: _getCropTypeColor(),
         ),
       );
     } catch (e) {
@@ -567,10 +608,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF4CAF50), // Vert foncé
+        color: _getCropTypeColor(), // Couleur de culture
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.green.withOpacity(0.5),
+          color: _getCropTypeColor().withOpacity(0.7),
           width: 1,
         ),
       ),
@@ -829,15 +870,11 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: _isDarkTheme 
-                    ? const Color(0xFF2E7D32).withOpacity(0.8)
-                    : const Color(0xFF4CAF50).withOpacity(0.9),
+                  color: _getCropTypeColor(),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: (_isDarkTheme 
-                        ? const Color(0xFF2E7D32)
-                        : const Color(0xFF4CAF50)).withOpacity(0.3),
+                      color: _getCropTypeColor().withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -912,6 +949,25 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                           ],
                         ),
                       ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.eco,
+                          color: Colors.white70,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Culture: ${widget.cropTypes.isNotEmpty ? widget.cropTypes.join(', ') : 'Non spécifiée'}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -943,15 +999,15 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: _isDarkTheme ? const Color(0xFF1F2933) : Colors.white,
+                  color: _getCropTypeColor().withOpacity(0.1), // Couleur de culture avec transparence
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _primaryColor.withOpacity(0.4),
+                    color: _getCropTypeColor().withOpacity(0.4),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: _getCropTypeColor().withOpacity(0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -965,7 +1021,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                         Icon(
                           Icons.landscape,
                           size: 18,
-                          color: _primaryColor,
+                          color: _getCropTypeColor(),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -974,8 +1030,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color:
-                                  _isDarkTheme ? Colors.white : Colors.black87,
+                              color: _getCropTypeColor(),
                             ),
                           ),
                         ),
@@ -986,7 +1041,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       '${widget.areaM2!.toStringAsFixed(0)} m² • Sol : ${_getSoilTypeTranslation(widget.soilType)}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: _isDarkTheme ? Colors.white70 : Colors.black54,
+                        color: _getCropTypeColor().withOpacity(0.8),
                       ),
                     ),
                   ],
@@ -997,10 +1052,10 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9), // Vert clair
+                color: _getCropTypeColor().withOpacity(0.1), // Couleur de culture avec transparence
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.green.withOpacity(0.3),
+                  color: _getCropTypeColor().withOpacity(0.3),
                   width: 1,
                 ),
               ),
@@ -1012,14 +1067,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     children: [
                       Icon(
                         Icons.cloud,
-                        color: Colors.blue,
+                        color: _getCropTypeColor(),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "MÉTÉO - ${widget.location.toUpperCase()}",
-                        style: const TextStyle(
-                          color: Colors.blue,
+                        style: TextStyle(
+                          color: _getCropTypeColor(),
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -1032,19 +1087,19 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 16,
+                          height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor:
-                                AlwaysStoppedAnimation<Color>(_primaryColor),
+                                AlwaysStoppedAnimation<Color>(_getCropTypeColor()),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Text(
                           '🔄 Chargement météo pour ${widget.location}...',
-                          style: const TextStyle(
-                            color: Colors.black87,
+                          style: TextStyle(
+                            color: _getCropTypeColor(),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -1089,16 +1144,52 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
             Container(
               width: double.infinity,
               margin: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-              child: CustomButton(
-                text: "Voir l'historique des cultures",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CropHistoryScreen(),
+              decoration: BoxDecoration(
+                color: _getCropTypeColor(),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: _getCropTypeColor().withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CropHistoryScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.history,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Voir l'historique des cultures",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
             Expanded(
@@ -1428,7 +1519,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
     } else if (humidity < 60) {
       primary = Colors.orange;
     } else {
-      primary = Colors.green;
+      primary = _getCropTypeColor(); // Couleur de culture au lieu de vert
     }
 
     return Container(

@@ -88,9 +88,22 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       // 2. Récupération du token et création du profil parcelle
       final token = result['token'] as String?;
       final dynamic apiUser = result['user'];
-      final String? userId = apiUser is Map ? (apiUser['id'] ?? apiUser['_id'])?.toString() : null;
+      
+      // Si apiUser est déjà une instance de User, utiliser directement son id
+      String? userId;
+      if (apiUser is User) {
+        userId = apiUser.id;
+      } else if (apiUser is Map) {
+        userId = apiUser['id']?.toString();
+      }
+
+      print('Token: $token');
+      print('User: $apiUser');
+      print('UserId: $userId');
+      print('User type: ${apiUser.runtimeType}');
 
       if (token == null || userId == null) {
+        print('ERREUR - Token null: ${token == null}, UserId null: ${userId == null}');
         throw Exception('Impossible de récupérer les informations du compte créé');
       }
 
