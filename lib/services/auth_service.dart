@@ -6,7 +6,7 @@ import '../models/user.dart';
 class AuthService {
   // ⚠️ CHANGEZ CETTE URL SELON VOTRE ENVIRONNEMENT
   static const String baseUrl =
-      'http://localhost:3000/api'; // Émulateur Android
+      'https://vq7xz4pc-3000.uks1.devtunnels.ms/api'; // Émulateur Android
   // static const String baseUrl = 'http://192.168.1.X:3000/api'; // Téléphone physique
 
   // Stockage simple en mémoire pour le token (remplace flutter_secure_storage côté démo)
@@ -501,7 +501,8 @@ class AuthService {
       );
 
       print('📡 Réponse API crop-history: ${response.statusCode}');
-      print('📄 Body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+      print(
+          '📄 Body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -589,7 +590,7 @@ class AuthService {
       );
 
       print('📡 Réponse sauvegarde: ${response.statusCode}');
-      
+
       if (response.statusCode == 201) {
         print('✅ Historique sauvegardé avec succès');
         final responseData = jsonDecode(response.body);

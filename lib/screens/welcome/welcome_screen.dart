@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../widgets/custom_button.dart';
 import '../enterprise/enterprise_role_screen.dart';
-import '../farmer/farmer_form_screen.dart';
 import '../farmer/farmer_login_screen.dart';
 import '../../presentation/providers/language_provider.dart';
 import '../../l10n/app_localizations.dart';
-import 'dart:math';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -145,7 +142,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     child: PopupMenuButton<String>(
                       icon: const Icon(Icons.language, color: Colors.white),
                       onSelected: (value) {
-                        ref.read(languageProvider.notifier).state = Locale(value);
+                        ref.read(languageProvider.notifier).state =
+                            Locale(value);
                       },
                       itemBuilder: (context) => [
                         const PopupMenuItem(
@@ -182,7 +180,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                           'ar': "مزارع صغير"
                         }[currentLang]!,
                         color: const Color(0xFF4CAF50),
-                        gradientColors: const [Color(0xFF4CAF50), Color(0xFF8BC34A)],
+                        gradientColors: const [
+                          Color(0xFF4CAF50),
+                          Color(0xFF8BC34A)
+                        ],
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -205,13 +206,18 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                           'ar': "شركة زراعية"
                         }[currentLang]!,
                         color: const Color(0xFF2196F3),
-                        gradientColors: const [Color(0xFF2196F3), Color(0xFF64B5F6)],
+                        gradientColors: const [
+                          Color(0xFF2196F3),
+                          Color(0xFF64B5F6)
+                        ],
                         onTap: () => Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) =>
-                                const EnterpriseRoleScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const EnterpriseRoleScreen(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
                               const begin = Offset(0.0, 1.0);
                               const end = Offset.zero;
                               const curve = Curves.easeOutCirc;
@@ -228,7 +234,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                                 ),
                               );
                             },
-                            transitionDuration: const Duration(milliseconds: 800),
+                            transitionDuration:
+                                const Duration(milliseconds: 800),
                           ),
                         ),
                       ),
@@ -257,8 +264,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
       onTap: onTap,
       child: Container(
         child: Container(
-          width: 200,
-          height: 240,
+          width: 140,
+          height: 180,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -300,7 +307,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               borderRadius: BorderRadius.circular(25),
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -308,8 +315,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       alignment: Alignment.center,
                       children: [
                         Container(
-                          width: 100,
-                          height: 100,
+                          width: 70,
+                          height: 70,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: gradientColors,
@@ -328,7 +335,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                         ),
                         Icon(
                           icon,
-                          size: 45,
+                          size: 30,
                           color: Colors.white,
                         ),
                         Positioned(
@@ -346,18 +353,18 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                             ),
                             child: Icon(
                               secondaryIcon,
-                              size: 20,
+                              size: 15,
                               color: color,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w900,
                         color: color,
                         letterSpacing: 1.0,
@@ -376,11 +383,11 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 12,
                         color: Colors.grey[700],
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.4,
@@ -408,8 +415,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
 }
 
 class WavePainter extends CustomPainter {
-  WavePainter(double offset);
-
   @override
   void paint(Canvas canvas, Size size) {}
 
