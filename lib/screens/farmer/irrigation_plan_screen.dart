@@ -463,138 +463,152 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 size: 24,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Plan d\'arrosage - ${_getCropTranslation(crop)}',
-                style: TextStyle(
-                  color: _getCropTypeColor(),
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'Plan d\'arrosage - ${_getCropTranslation(crop)}',
+                  style: TextStyle(
+                    color: _getCropTypeColor(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Résumé essentiel
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '📋 Résumé du plan:',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _getCropTypeColor(),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        ...summary.map((item) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '• ',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: _getCropTypeColor(),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      item,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        height: 1.4,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Jours d'arrosage
-                  if (_mistralWaterDaysKeys != null &&
-                      _mistralWaterDaysKeys!.isNotEmpty)
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.6,
+                ),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Résumé essentiel
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _getCropTypeColor().withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            color: _getCropTypeColor(),
-                            size: 16,
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                          const SizedBox(width: 6),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            '🗓️ Jours: ${_mistralWaterDaysKeys!.map((day) => day.substring(0, 1).toUpperCase() + day.substring(1)).join(', ')}',
+                            '📋 Résumé du plan:',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                               color: _getCropTypeColor(),
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          ...summary.map((item) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '• ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _getCropTypeColor(),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        item,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.4,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )),
                         ],
                       ),
                     ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  // Option pour voir le texte complet
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _showFullMistralPlan(plan, crop);
-                    },
-                    icon: Icon(
-                      Icons.expand_more,
-                      color: _getCropTypeColor(),
-                      size: 16,
-                    ),
-                    label: Text(
-                      'Voir le texte complet',
-                      style: TextStyle(
+                    // Jours d'arrosage
+                    if (_mistralWaterDaysKeys != null &&
+                        _mistralWaterDaysKeys!.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _getCropTypeColor().withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              color: _getCropTypeColor(),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '🗓️ Jours: ${_mistralWaterDaysKeys!.map((day) => day.substring(0, 1).toUpperCase() + day.substring(1)).join(', ')}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _getCropTypeColor(),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    const SizedBox(height: 12),
+
+                    // Option pour voir le texte complet
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _showFullMistralPlan(plan, crop);
+                      },
+                      icon: Icon(
+                        Icons.expand_more,
                         color: _getCropTypeColor(),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        size: 16,
+                      ),
+                      label: Text(
+                        'Voir le texte complet',
+                        style: TextStyle(
+                          color: _getCropTypeColor(),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -710,30 +724,39 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 size: 24,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Plan complet - ${_getCropTranslation(crop)}',
-                style: TextStyle(
-                  color: _getCropTypeColor(),
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'Plan complet - ${_getCropTranslation(crop)}',
+                  style: TextStyle(
+                    color: _getCropTypeColor(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Text(
-                plan,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: Colors.black87,
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Text(
+                  plan,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
             ),
