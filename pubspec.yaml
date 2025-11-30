@@ -1,0 +1,41 @@
+name: flutter_application_1
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.2.2
+  intl: ^0.20.2
+  mqtt_client: ^10.11.1
+  provider: ^6.1.1
+  flutter_riverpod: ^3.0.3
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.1.0
+  flutter_local_notifications: ^17.2.1
+  timezone: ^0.9.4
+  device_calendar: ^4.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/images/role.png
+    - assets/images/admin.png
+    - assets/images/superviseur.png
+    - assets/translations/
+    - assets/images/farmer.png
+    - assets/images/ferme.png
