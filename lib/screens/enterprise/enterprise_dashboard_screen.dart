@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/custom_button.dart';
-import 'enterprise_add_farmer_screen.dart';
+import 'enterprise_add_farmer_screen.dart'; // Will be renamed by the refactor
 import 'enterprise_edit_farmer_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../models/user.dart';
@@ -19,19 +19,19 @@ class EnterpriseDashboardScreen extends StatefulWidget {
 
 class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
   final AuthService _authService = AuthService();
-  List<User> _farmers = [];
+  List<User> _users = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadFarmers();
+    _loadUsers();
   }
 
-  Future<void> _loadFarmers() async {
-    final farmers = await _authService.fetchFarmers();
+  Future<void> _loadUsers() async {
+    final users = await _authService.fetchSupervisors();
     setState(() {
-      _farmers = farmers;
+      _users = users;
       _isLoading = false;
     });
   }
@@ -106,7 +106,7 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                 const SizedBox(height: 4),
 
                 const Text(
-                  "Gérez vos fermiers facilement.",
+                  "Gérez vos superviseurs facilement.",
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
 
@@ -143,7 +143,7 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Fermiers enregistrés",
+                            "Superviseurs enregistrés",
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 15,
@@ -151,7 +151,7 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "${_farmers.length}",
+                            "${_users.length}",
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 36,
@@ -168,12 +168,12 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) =>
-                                    const EnterpriseAddFarmerScreen()),
+                              builder: (_) => const EnterpriseAddUserScreen(role: 'superviseur'),
+                            ),
                           );
                           if (result is User) {
                             setState(() {
-                              _farmers.add(result);
+                              _users.add(result);
                             });
                           }
                         },
@@ -194,21 +194,21 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                             color: Colors.purpleAccent,
                           ),
                         )
-                      : _farmers.isEmpty
+                      : _users.isEmpty
                           ? const Center(
                               child: Text(
-                                "Aucun fermier pour le moment.",
+                                "Aucun superviseur pour le moment.",
                                 style: TextStyle(
                                     color: Colors.white54, fontSize: 16),
                               ),
                             )
                           : ListView.separated(
-                              itemCount: _farmers.length,
+                              itemCount: _users.length,
                               separatorBuilder: (_, __) =>
                                   const SizedBox(height: 18),
                               itemBuilder: (context, index) {
                                 return _buildFarmerCard(
-                                    context, _farmers[index], index);
+                                    context, _users[index], index);
                               },
                             ),
                 ),
@@ -285,7 +285,7 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                     );
                     if (updated is User) {
                       setState(() {
-                        _farmers[index] = updated;
+                        _users[index] = updated;
                       });
                     }
                   },
@@ -326,7 +326,7 @@ class _EnterpriseDashboardScreenState extends State<EnterpriseDashboardScreen> {
                     await _authService.deleteUser(farmer.id);
 
                     setState(() {
-                      _farmers.removeAt(index);
+                      _users.removeAt(index);
                     });
                   },
                 ),

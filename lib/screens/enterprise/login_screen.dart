@@ -71,11 +71,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (widget.role == "superviseur" && user.role != "farmer") {
+    if (widget.role == "superviseur" && user.role != "superviseur") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              "Seuls les comptes fermier/superviseur créés par l'admin peuvent se connecter ici"),
+              "Seuls les comptes superviseur créés par l'admin peuvent se connecter ici"),
           backgroundColor: Colors.red,
         ),
       );

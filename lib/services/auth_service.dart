@@ -11,7 +11,7 @@ class AuthService {
   // static const String baseUrl = 'http://192.168.1.X:3000/api'; // Téléphone physique
 
   // Mode mock pour tester sans backend
-  static const bool useMockMode = true;
+  static const bool useMockMode = false;
 
   // Stockage simple en mémoire pour le token (remplace flutter_secure_storage côté démo)
   static String? _inMemoryToken;
@@ -245,6 +245,52 @@ class AuthService {
     }
   }
 
+  // 👨‍🌾 RÉCUPÉRER LA LISTE DES SUPERVISEURS
+  Future<List<User>> fetchSupervisors() async {
+    if (useMockMode) {
+      print('DEBUG FETCH SUPERVISORS MOCK');
+      await Future.delayed(const Duration(milliseconds: 800));
+      return [
+        User(id: 'mock_sup_1', email: 'supervisor1@test.com', name: 'Alice Superviseur', role: 'superviseur'),
+        User(id: 'mock_sup_2', email: 'supervisor2@test.com', name: 'Bob Superviseur', role: 'superviseur'),
+      ];
+    }
+
+    try {
+      final token = await getToken();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/users?role=superviseur'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List) {
+          return data
+              .whereType<Map<String, dynamic>>()
+              .map((e) => User.fromJson(e))
+              .toList();
+        }
+        if (data is Map<String, dynamic> && data['users'] is List) {
+          final list = data['users'] as List;
+          return list
+              .whereType<Map<String, dynamic>>()
+              .map((e) => User.fromJson(e))
+              .toList();
+        }
+      }
+
+      return [];
+    } catch (e) {
+      print('Erreur fetchSupervisors: $e');
+      return [];
+    }
+  }
+
   // 👨‍🌾 PROFIL DU FERMIER (FORMULAIRE PARCELLE)
   Future<Map<String, dynamic>?> fetchFarmerProfile() async {
     try {
@@ -342,6 +388,12 @@ class AuthService {
     required List<String> crops,
     required double areaM2,
   }) async {
+    if (useMockMode) {
+      print('DEBUG UPDATE FARMER PROFILE MOCK');
+      await Future.delayed(const Duration(milliseconds: 500));
+      return true; // Simuler un succès
+    }
+
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/farmer/profile'),
@@ -472,6 +524,39 @@ class AuthService {
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       print('Erreur deleteUser: $e');
+      return false;
+    }
+  }
+
+  // 👨‍🌾 METTRE À JOUR LA PARCELLE D'UN FERMIER (ADMIN)
+  Future<bool> updateFarmerParcel({
+    required String farmerId,
+    required String parcelLocation,
+    required String soilType,
+    required List<String> crops,
+    required double areaM2,
+  }) async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/farmer/profile/$farmerId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'parcelLocation': parcelLocation,
+          'soilType': soilType,
+          'crops': crops,
+          'areaM2': areaM2,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erreur updateFarmerParcel: $e');
       return false;
     }
   }

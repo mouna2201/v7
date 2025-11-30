@@ -1,20 +1,22 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../widgets/custom_button.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../models/user.dart';
+import 'dart:developer';
 
-class EnterpriseAddFarmerScreen extends StatefulWidget {
-  const EnterpriseAddFarmerScreen({super.key});
+class EnterpriseAddUserScreen extends StatefulWidget {
+  final String role; // 'farmer' ou 'superviseur'
+
+  const EnterpriseAddUserScreen({super.key, required this.role});
 
   @override
-  State<EnterpriseAddFarmerScreen> createState() =>
-      _EnterpriseAddFarmerScreenState();
+  State<EnterpriseAddUserScreen> createState() =>
+      _EnterpriseAddUserScreenState();
 }
 
-class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
+class _EnterpriseAddUserScreenState extends State<EnterpriseAddUserScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
@@ -36,10 +38,13 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
     super.dispose();
   }
 
-  Future<void> _addFarmer() async {
+  String get userRoleDisplay {
+    return widget.role == 'superviseur' ? 'Superviseur' : 'Fermier';
+  }
+
+  Future<void> _addUser() async {
     if (!mounted) return;
 
-    // Validation des champs obligatoires
     if (_name.text.trim().isEmpty ||
         _email.text.trim().isEmpty ||
         _password.text.trim().isEmpty) {
@@ -47,7 +52,6 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       return;
     }
 
-    // Validation des champs de la parcelle
     final location = _parcelLocation.text.trim();
     final cropsText = _parcelCrops.text.trim();
     final areaText = _parcelArea.text.trim();
@@ -57,7 +61,6 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       return;
     }
 
-    // Validation du format de la surface
     double? area;
     try {
       area = double.parse(areaText.replaceAll(',', '.'));
@@ -70,44 +73,34 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
     setState(() => _loading = true);
 
     try {
-      // 1. Création du compte utilisateur
       final result = await _authService.register(
         name: _name.text.trim(),
         email: _email.text.trim().toLowerCase(),
         password: _password.text,
-        role: 'farmer',
-        updateToken: false, // Ne pas remplacer le token admin
+        role: widget.role, // Utiliser le rôle passé en paramètre
+        updateToken: false,
       );
 
       if (!mounted) return;
 
-      if (result == null || result['success'] != true) {
-        throw Exception(result?['message']?.toString() ?? 'Erreur lors de la création du compte');
+      if (result['success'] != true) {
+        throw Exception(result['message']?.toString() ?? 'Erreur lors de la création du compte');
       }
 
-      // 2. Récupération du token et création du profil parcelle
       final token = result['token'] as String?;
       final dynamic apiUser = result['user'];
-      
-      // Si apiUser est déjà une instance de User, utiliser directement son id
       String? userId;
+
       if (apiUser is User) {
         userId = apiUser.id;
       } else if (apiUser is Map) {
-        userId = apiUser['id']?.toString();
+        userId = apiUser['id']?.toString() ?? apiUser['_id']?.toString();
       }
 
-      print('Token: $token');
-      print('User: $apiUser');
-      print('UserId: $userId');
-      print('User type: ${apiUser.runtimeType}');
-
       if (token == null || userId == null) {
-        print('ERREUR - Token null: ${token == null}, UserId null: ${userId == null}');
         throw Exception('Impossible de récupérer les informations du compte créé');
       }
 
-      // 3. Création du profil parcelle
       final cropsList = _parcelCrops.text
           .split(',')
           .map((e) => e.trim())
@@ -126,30 +119,25 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
         throw Exception('Erreur lors de la création du profil parcelle');
       }
 
-      // Succès
       if (mounted) {
-        _showSuccessSnackBar('Fermier et parcelle créés avec succès');
-
-        // Retour à l'écran précédent après un délai
+        _showSuccessSnackBar('$userRoleDisplay et parcelle créés avec succès');
         await Future.delayed(const Duration(seconds: 1));
         if (!mounted) return;
 
-        // On retourne l'utilisateur créé
+        User userToReturn;
         if (apiUser is User) {
-          Navigator.pop(context, apiUser);
+          userToReturn = apiUser;
         } else if (apiUser is Map<String, dynamic>) {
-          Navigator.pop(context, User.fromJson(apiUser));
+          userToReturn = User.fromJson(apiUser);
         } else {
-          Navigator.pop(
-            context,
-            User(
-              id: userId,
-              email: _email.text.trim(),
-              name: _name.text.trim(),
-              role: 'farmer',
-            ),
+          userToReturn = User(
+            id: userId,
+            email: _email.text.trim(),
+            name: _name.text.trim(),
+            role: widget.role,
           );
         }
+        Navigator.pop(context, userToReturn);
       }
     } catch (e) {
       if (mounted) {
@@ -183,21 +171,11 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
 
   void _handleError(dynamic error) {
     if (!mounted) return;
-
-    String errorMessage = 'Erreur: ';
-    if (error is FormatException) {
-      errorMessage += 'Format de données invalide';
-    } else {
-      errorMessage += error.toString().replaceAll('Exception: ', '');
-    }
-
+    String errorMessage = 'Erreur: ${error.toString().replaceAll('Exception: ', '')}';
     if (kDebugMode) {
       print('Erreur: $error');
-      if (error is Error) {
-        print('Stack trace: ${error.stackTrace}');
-      }
+      if (error is Error) print('Stack trace: ${error.stackTrace}');
     }
-
     _showErrorSnackBar(errorMessage);
   }
 
@@ -207,173 +185,159 @@ class _EnterpriseAddFarmerScreenState extends State<EnterpriseAddFarmerScreen> {
       data: AppTheme.enterpriseTheme,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Ajouter un fermier'),
+          title: Text('Ajouter un $userRoleDisplay'),
           centerTitle: true,
         ),
         body: Stack(
           children: [
-            // Image de fond ferme
             Positioned.fill(
               child: ColorFiltered(
                 colorFilter: ColorFilter.mode(
                   Colors.white.withOpacity(0.15),
                   BlendMode.srcATop,
                 ),
-                child: Image.asset(
-                  'assets/images/ferme.png',
-                  fit: BoxFit.cover,
-                ),
+                child: Image.asset('assets/images/ferme.png', fit: BoxFit.cover),
               ),
             ),
-            // Contenu du formulaire
             SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 10),
-              Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.agriculture,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 10),
+                  Row(
                     children: [
-                      Text(
-                        'Nouveau fermier',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.person_add,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                      Text(
-                        'Ajoutez un fermier pour votre entreprise.',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Nouveau $userRoleDisplay',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(
+                            'Ajoutez un $userRoleDisplay pour votre entreprise.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 20),
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _name,
+                            decoration: const InputDecoration(
+                              labelText: 'Nom',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _email,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _password,
+                            decoration: const InputDecoration(
+                              labelText: 'Mot de passe',
+                              border: OutlineInputBorder(),
+                            ),
+                            obscureText: true,
+                          ),
+                          const SizedBox(height: 24),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Parcelle du $userRoleDisplay',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _parcelLocation,
+                            decoration: const InputDecoration(
+                              labelText: 'Localisation / Parcelle',
+                              border: OutlineInputBorder(),
+                              hintText: 'Ex: Parcelle A, Zone Nord',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            value: _soilType,
+                            items: const [
+                              DropdownMenuItem(value: 'sableux', child: Text('Sol sableux')),
+                              DropdownMenuItem(value: 'argileux', child: Text('Sol argileux')),
+                              DropdownMenuItem(value: 'limoneux', child: Text('Sol limoneux')),
+                            ],
+                            onChanged: (value) {
+                              if (value == null) return;
+                              setState(() => _soilType = value);
+                            },
+                            decoration: const InputDecoration(
+                              labelText: 'Type de sol',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _parcelCrops,
+                            decoration: const InputDecoration(
+                              labelText: 'Cultures (séparées par des virgules)',
+                              border: OutlineInputBorder(),
+                              hintText: 'Ex: Fraise, Tomate, Salade',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _parcelArea,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(
+                              labelText: 'Surface (m²)',
+                              border: OutlineInputBorder(),
+                              hintText: 'Ex: 4.5',
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _loading
+                              ? const CircularProgressIndicator()
+                              : CustomButton(
+                                  text: 'Créer $userRoleDisplay',
+                                  onTap: _addUser,
+                                ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _name,
-                        decoration: const InputDecoration(
-                          labelText: 'Nom',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _email,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _password,
-                        decoration: const InputDecoration(
-                          labelText: 'Mot de passe',
-                          border: OutlineInputBorder(),
-                        ),
-                        obscureText: true,
-                      ),
-                      const SizedBox(height: 24),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Parcelle du fermier',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _parcelLocation,
-                        decoration: const InputDecoration(
-                          labelText: 'Localisation / Parcelle',
-                          border: OutlineInputBorder(),
-                          hintText: 'Ex: Parcelle A, Zone Nord',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: _soilType,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'sableux',
-                            child: Text('Sol sableux'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'argileux',
-                            child: Text('Sol argileux'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'limoneux',
-                            child: Text('Sol limoneux'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() => _soilType = value);
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Type de sol',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _parcelCrops,
-                        decoration: const InputDecoration(
-                          labelText: 'Cultures (séparées par des virgules)',
-                          border: OutlineInputBorder(),
-                          hintText: 'Ex: Fraise, Tomate, Salade',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _parcelArea,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(
-                          labelText: 'Surface (m²)',
-                          border: OutlineInputBorder(),
-                          hintText: 'Ex: 4.5',
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _loading
-                          ? const CircularProgressIndicator()
-                          : CustomButton(
-                              text: 'Créer fermier',
-                              onTap: _addFarmer,
-                            ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        ],
-      ),
       ),
     );
   }

@@ -86,18 +86,12 @@ class _EnterpriseEditFarmerScreenState
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Vérifier que l'ID du fermier n'est pas vide et est valide
     final farmerId = widget.farmer.id;
-    print('DEBUG: Farmer ID brut = "$farmerId"');
-
-    if (farmerId.isEmpty || farmerId.length < 10) {
+    if (farmerId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              '❌ ID du fermier invalide: "$farmerId". Impossible de mettre à jour.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 5),
-        ),
+        const SnackBar(
+            content: Text('❌ ID du fermier invalide.'),
+            backgroundColor: Colors.red),
       );
       return;
     }
@@ -105,12 +99,8 @@ class _EnterpriseEditFarmerScreenState
     setState(() => _loading = true);
 
     try {
-      print('Tentative de mise à jour du fermier ID: $farmerId');
-      print('Nom: ${_nameController.text.trim()}');
-      print('Email: ${_emailController.text.trim()}');
-
-      // Mettre à jour les infos utilisateur uniquement
-      final updatedUser = await _authService.updateUser(
+      // 1. Mettre à jour les informations de base de l'utilisateur
+      final userUpdated = await _authService.updateUser(
         id: farmerId,
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
@@ -118,23 +108,42 @@ class _EnterpriseEditFarmerScreenState
             _passwordController.text.isEmpty ? null : _passwordController.text,
       );
 
-      print('Résultat updateUser: $updatedUser');
+      if (userUpdated == null) {
+        throw Exception('La mise à jour des informations a échoué.');
+      }
 
-      setState(() => _loading = false);
+      // 2. Mettre à jour les informations de la parcelle
+      final parcelUpdated = await _authService.updateFarmerParcel(
+        farmerId: farmerId,
+        parcelLocation: _parcelLocationController.text.trim(),
+        soilType: _soilType,
+        crops: _parcelCropsController.text
+            .split(',')
+            .map((e) => e.trim())
+            .toList(),
+        areaM2: double.tryParse(_parcelAreaController.text) ?? 0.0,
+      );
+
+      if (!parcelUpdated) {
+        throw Exception('La mise à jour de la parcelle a échoué.');
+      }
+
+      // 3. Créer un objet User complet pour le retour
+      final completeUpdatedUser = User(
+        id: farmerId,
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        role: widget.farmer.role,
+        parcelLocation: _parcelLocationController.text.trim(),
+        soilType: _soilType,
+        crops: _parcelCropsController.text
+            .split(',')
+            .map((e) => e.trim())
+            .toList(),
+        areaM2: double.tryParse(_parcelAreaController.text) ?? 0.0,
+      );
 
       if (!mounted) return;
-
-      if (updatedUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                '❌ Erreur lors de la mise à jour du fermier. Veuillez réessayer.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -143,18 +152,19 @@ class _EnterpriseEditFarmerScreenState
         ),
       );
 
-      Navigator.pop(context, updatedUser);
+      Navigator.pop(context, completeUpdatedUser);
     } catch (e) {
-      setState(() => _loading = false);
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('❌ Erreur: ${e.toString()}'),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
