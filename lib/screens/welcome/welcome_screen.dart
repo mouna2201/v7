@@ -70,182 +70,186 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          _animatedBackground(),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(25.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF48D1CC), Color(0xFF20B2AA)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF48D1CC).withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+      body: Directionality(
+        textDirection:
+            currentLang == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        child: Stack(
+          children: [
+            _animatedBackground(),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF48D1CC), Color(0xFF20B2AA)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.eco,
-                      size: 80,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    welcomeText,
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.7),
-                          blurRadius: 10,
-                          offset: const Offset(2, 2),
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    roleText,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.7),
-                          blurRadius: 5,
-                          offset: const Offset(1, 1),
-                        ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 30),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: PopupMenuButton<String>(
-                      icon: const Icon(Icons.language, color: Colors.white),
-                      onSelected: (value) {
-                        ref.read(languageProvider.notifier).state =
-                            Locale(value);
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'fr',
-                          child: Text(" Français"),
-                        ),
-                        const PopupMenuItem(
-                          value: 'en',
-                          child: Text(" English"),
-                        ),
-                        const PopupMenuItem(
-                          value: 'ar',
-                          child: Text(" العربية"),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildRoleCard(
-                        context: context,
-                        icon: Icons.agriculture,
-                        secondaryIcon: Icons.eco,
-                        title: {
-                          'fr': "Fermier",
-                          'en': "Farmer",
-                          'ar': "فلاح"
-                        }[currentLang]!,
-                        subtitle: {
-                          'fr': "Petit exploitant",
-                          'en': "Small farmer",
-                          'ar': "مزارع صغير"
-                        }[currentLang]!,
-                        color: const Color(0xFF4CAF50),
-                        gradientColors: const [
-                          Color(0xFF4CAF50),
-                          Color(0xFF8BC34A)
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF48D1CC).withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
                         ],
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FarmerLoginScreen(),
+                      ),
+                      child: const Icon(
+                        Icons.eco,
+                        size: 80,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      welcomeText,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.7),
+                            blurRadius: 10,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      roleText,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.7),
+                            blurRadius: 5,
+                            offset: const Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 30),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: PopupMenuButton<String>(
+                        icon: const Icon(Icons.language, color: Colors.white),
+                        onSelected: (value) {
+                          ref.read(languageProvider.notifier).state =
+                              Locale(value);
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'fr',
+                            child: Text(" Français"),
+                          ),
+                          const PopupMenuItem(
+                            value: 'en',
+                            child: Text(" English"),
+                          ),
+                          const PopupMenuItem(
+                            value: 'ar',
+                            child: Text(" العربية"),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildRoleCard(
+                          context: context,
+                          icon: Icons.agriculture,
+                          secondaryIcon: Icons.eco,
+                          title: {
+                            'fr': "Fermier",
+                            'en': "Farmer",
+                            'ar': "فلاح"
+                          }[currentLang]!,
+                          subtitle: {
+                            'fr': "Petit exploitant",
+                            'en': "Small farmer",
+                            'ar': "مزارع صغير"
+                          }[currentLang]!,
+                          color: const Color(0xFF4CAF50),
+                          gradientColors: const [
+                            Color(0xFF4CAF50),
+                            Color(0xFF8BC34A)
+                          ],
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FarmerLoginScreen(),
+                            ),
                           ),
                         ),
-                      ),
-                      _buildRoleCard(
-                        context: context,
-                        icon: Icons.business,
-                        secondaryIcon: Icons.trending_up,
-                        title: {
-                          'fr': "Entreprise",
-                          'en': "Enterprise",
-                          'ar': "شركة"
-                        }[currentLang]!,
-                        subtitle: {
-                          'fr': "Société agricole",
-                          'en': "Agricultural company",
-                          'ar': "شركة زراعية"
-                        }[currentLang]!,
-                        color: const Color(0xFF2196F3),
-                        gradientColors: const [
-                          Color(0xFF2196F3),
-                          Color(0xFF64B5F6)
-                        ],
-                        onTap: () => Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder:
-                                (context, animation, secondaryAnimation) =>
-                                    const EnterpriseRoleScreen(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
-                              const begin = Offset(0.0, 1.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeOutCirc;
+                        _buildRoleCard(
+                          context: context,
+                          icon: Icons.business,
+                          secondaryIcon: Icons.trending_up,
+                          title: {
+                            'fr': "Entreprise",
+                            'en': "Enterprise",
+                            'ar': "شركة"
+                          }[currentLang]!,
+                          subtitle: {
+                            'fr': "Société agricole",
+                            'en': "Agricultural company",
+                            'ar': "شركة زراعية"
+                          }[currentLang]!,
+                          color: const Color(0xFF2196F3),
+                          gradientColors: const [
+                            Color(0xFF2196F3),
+                            Color(0xFF64B5F6)
+                          ],
+                          onTap: () => Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      const EnterpriseRoleScreen(),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                const begin = Offset(0.0, 1.0);
+                                const end = Offset.zero;
+                                const curve = Curves.easeOutCirc;
 
-                              var tween = Tween(begin: begin, end: end).chain(
-                                CurveTween(curve: curve),
-                              );
+                                var tween = Tween(begin: begin, end: end).chain(
+                                  CurveTween(curve: curve),
+                                );
 
-                              return SlideTransition(
-                                position: animation.drive(tween),
-                                child: FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            transitionDuration:
-                                const Duration(milliseconds: 800),
+                                return SlideTransition(
+                                  position: animation.drive(tween),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              transitionDuration:
+                                  const Duration(milliseconds: 800),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

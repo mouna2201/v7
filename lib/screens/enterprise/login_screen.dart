@@ -43,7 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final bool isEmail = emailOrUsername.contains('@');
     final result = isEmail
         ? await _authService.login(email: emailOrUsername, password: password)
-        : await _authService.login(username: emailOrUsername, password: password);
+        : await _authService.login(
+            username: emailOrUsername, password: password);
 
     setState(() => _loading = false);
 
@@ -268,12 +269,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               TextField(
                                 controller: _emailController,
-                                style:
-                                    const TextStyle(color: Colors.black87),
+                                style: const TextStyle(color: Colors.black87),
                                 decoration: InputDecoration(
                                   labelText: 'Email',
-                                  labelStyle: TextStyle(
-                                      color: Colors.grey.shade700),
+                                  labelStyle:
+                                      TextStyle(color: Colors.grey.shade700),
                                   prefixIcon: const Icon(
                                     Icons.email_outlined,
                                     color: Colors.blue,
@@ -299,12 +299,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextField(
                                 controller: _passwordController,
                                 obscureText: true,
-                                style:
-                                    const TextStyle(color: Colors.black87),
+                                style: const TextStyle(color: Colors.black87),
                                 decoration: InputDecoration(
                                   labelText: 'Mot de passe',
-                                  labelStyle: TextStyle(
-                                      color: Colors.grey.shade700),
+                                  labelStyle:
+                                      TextStyle(color: Colors.grey.shade700),
                                   prefixIcon: const Icon(
                                     Icons.lock_outline,
                                     color: Colors.blue,
@@ -410,8 +409,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
@@ -475,12 +474,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             TextField(
                               controller: _emailController,
-                              style:
-                                  const TextStyle(color: Colors.black87),
+                              style: const TextStyle(color: Colors.black87),
                               decoration: InputDecoration(
                                 labelText: 'Email',
-                                labelStyle: TextStyle(
-                                    color: Colors.grey.shade700),
+                                labelStyle:
+                                    TextStyle(color: Colors.grey.shade700),
                                 prefixIcon: Icon(
                                   Icons.email_outlined,
                                   color: primary,
@@ -506,12 +504,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             TextField(
                               controller: _passwordController,
                               obscureText: true,
-                              style:
-                                  const TextStyle(color: Colors.black87),
+                              style: const TextStyle(color: Colors.black87),
                               decoration: InputDecoration(
                                 labelText: 'Mot de passe',
-                                labelStyle: TextStyle(
-                                    color: Colors.grey.shade700),
+                                labelStyle:
+                                    TextStyle(color: Colors.grey.shade700),
                                 prefixIcon: Icon(
                                   Icons.lock_outline,
                                   color: primary,
@@ -543,25 +540,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                       CustomButton(
                                         text: 'Se connecter',
                                         onTap: _login,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  EnterpriseRegisterScreen(),
-                                            ),
-                                          );
-                                        },
-                                        child: Text(
-                                          'Pas encore de compte ? S\'inscrire',
-                                          style: TextStyle(
-                                            color: primary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
                                       ),
                                     ],
                                   ),

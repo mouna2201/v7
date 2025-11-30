@@ -1,23 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/crop_history.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/providers/language_provider.dart';
 
-class CropHistoryScreen extends StatefulWidget {
+class CropHistoryScreen extends ConsumerWidget {
   const CropHistoryScreen({Key? key}) : super(key: key);
 
   @override
-  State<CropHistoryScreen> createState() => _CropHistoryScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _CropHistoryScreenContent(ref: ref);
+  }
 }
 
-class _CropHistoryScreenState extends State<CropHistoryScreen> {
+class _CropHistoryScreenContent extends StatefulWidget {
+  final WidgetRef ref;
+
+  const _CropHistoryScreenContent({required this.ref});
+
+  @override
+  State<_CropHistoryScreenContent> createState() => _CropHistoryScreenState();
+}
+
+class _CropHistoryScreenState extends State<_CropHistoryScreenContent> {
   final AuthService _authService = AuthService();
   List<CropHistoryRecord> _cropHistory = [];
   bool _isLoadingHistory = false;
   late AppLocalizations _l10n;
   Color _primaryColor = AppTheme.lightTheme.primaryColor;
   bool _isDarkTheme = false;
+  late String currentLang;
+
+  // Méthode pour obtenir les textes localisés
+  Map<String, String> _getLocalizedTexts() {
+    return {
+      'fr': {
+        'title': 'Historique des Cultures',
+        'subtitle': 'HISTORIQUE DES CULTURES',
+        'today': 'Aujourd\'hui',
+        'yesterday': 'Hier',
+        'location': 'Localisation',
+        'soilType': 'Type de sol',
+        'meterage': 'Métrage',
+        'water': 'Eau',
+        'daysAgo': 'Il y a {0} jours',
+        'noHistory': 'Aucun historique disponible',
+        'loading': 'Chargement...',
+      },
+      'en': {
+        'title': 'Crop History',
+        'subtitle': 'CROP HISTORY',
+        'today': 'Today',
+        'yesterday': 'Yesterday',
+        'location': 'Location',
+        'soilType': 'Soil type',
+        'meterage': 'Area',
+        'water': 'Water',
+        'daysAgo': '{0} days ago',
+        'noHistory': 'No history available',
+        'loading': 'Loading...',
+      },
+      'ar': {
+        'title': 'سجل المحاصيل',
+        'subtitle': 'سجل المحاصيل',
+        'today': 'اليوم',
+        'yesterday': 'أمس',
+        'location': 'الموقع',
+        'soilType': 'نوع التربة',
+        'meterage': 'المساحة',
+        'water': 'الماء',
+        'daysAgo': 'منذ {0} أيام',
+        'noHistory': 'لا يوجد سجل متاح',
+        'loading': 'جاري التحميل...',
+      },
+    }[currentLang]!;
+  }
 
   @override
   void initState() {
@@ -31,6 +90,10 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
     _l10n = AppLocalizations.of(context)!;
     _primaryColor = Theme.of(context).primaryColor;
     _isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
+    // Initialiser la langue actuelle
+    final locale = widget.ref.watch(languageProvider);
+    currentLang = locale.languageCode;
   }
 
   Future<void> _loadCropHistory() async {
@@ -38,11 +101,11 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
     try {
       final historyData = await _authService.fetchCropHistory();
       print('📊 Données reçues: ${historyData.length} enregistrements');
-      
+
       if (historyData.isNotEmpty) {
         print('📊 Premier enregistrement: ${historyData.first}');
       }
-      
+
       setState(() {
         _cropHistory = historyData
             .map((e) {
@@ -58,8 +121,9 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
             .toList();
         _isLoadingHistory = false;
       });
-      
-      print('✅ Historique chargé: ${_cropHistory.length} enregistrements valides');
+
+      print(
+          '✅ Historique chargé: ${_cropHistory.length} enregistrements valides');
     } catch (e, stackTrace) {
       print('❌ Erreur chargement historique: $e');
       print('❌ Stack trace: $stackTrace');
@@ -69,15 +133,16 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizedTexts = _getLocalizedTexts();
+
     return Scaffold(
       backgroundColor: _isDarkTheme ? Colors.black : const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor:
-            _isDarkTheme ? const Color(0xFF1A1A1A) : _primaryColor,
+        backgroundColor: _isDarkTheme ? const Color(0xFF1A1A1A) : _primaryColor,
         foregroundColor: Colors.white,
         centerTitle: true,
-        title: const Text(
-          'Historique des Cultures',
+        title: Text(
+          localizedTexts['title']!,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -85,98 +150,92 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
         ),
         elevation: 0,
       ),
-      body: _isLoadingHistory
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : _cropHistory.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.history,
-                        size: 64,
-                        color: _isDarkTheme ? Colors.white54 : Colors.grey,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Aucun historique disponible',
-                        style: TextStyle(
-                          color: _isDarkTheme ? Colors.white70 : Colors.black54,
-                          fontSize: 16,
+      body: Directionality(
+        textDirection:
+            currentLang == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        child: _isLoadingHistory
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : _cropHistory.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.history,
+                          size: 64,
+                          color: _isDarkTheme ? Colors.white54 : Colors.grey,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          'Les historiques apparaîtront ici après la génération d\'un plan d\'irrigation',
+                        const SizedBox(height: 16),
+                        Text(
+                          localizedTexts['noHistory']!,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: _isDarkTheme ? Colors.white54 : Colors.grey,
                             fontSize: 12,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: _loadCropHistory,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Actualiser'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _primaryColor,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadCropHistory,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      // En-tête
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: _isDarkTheme
-                              ? const Color(0xFF1A1A1A)
-                              : _primaryColor.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _isDarkTheme
-                                ? Colors.grey.withOpacity(0.3)
-                                : _primaryColor.withOpacity(0.3),
-                            width: 1,
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _loadCropHistory,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Actualiser'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _primaryColor,
+                            foregroundColor: Colors.white,
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.history,
-                              color: _primaryColor,
-                              size: 24,
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadCropHistory,
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        // En-tête
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: _isDarkTheme
+                                ? const Color(0xFF1A1A1A)
+                                : _primaryColor.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _isDarkTheme
+                                  ? Colors.grey.withOpacity(0.3)
+                                  : _primaryColor.withOpacity(0.3),
+                              width: 1,
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              "HISTORIQUE DES CULTURES",
-                              style: TextStyle(
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.history,
                                 color: _primaryColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
+                                size: 24,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 12),
+                              Text(
+                                localizedTexts['subtitle']!,
+                                style: TextStyle(
+                                  color: _primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Liste des historiques
-                      ..._cropHistory.map((record) => _buildHistoryItem(record)),
-                    ],
+                        const SizedBox(height: 16),
+                        // Liste des historiques
+                        ..._cropHistory
+                            .map((record) => _buildHistoryItem(record)),
+                      ],
+                    ),
                   ),
-                ),
+      ),
     );
   }
 
@@ -252,7 +311,7 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _isDarkTheme 
+              color: _isDarkTheme
                   ? Colors.white.withOpacity(0.05)
                   : cropColors['primary']!.withOpacity(0.05),
               borderRadius: BorderRadius.circular(8),
@@ -273,9 +332,11 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Localisation',
+                            _getLocalizedTexts()['location']!,
                             style: TextStyle(
-                              color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                              color: _isDarkTheme
+                                  ? Colors.white60
+                                  : Colors.black54,
                               fontSize: 12,
                             ),
                           ),
@@ -283,7 +344,8 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                           Text(
                             record.location,
                             style: TextStyle(
-                              color: _isDarkTheme ? Colors.white : Colors.black87,
+                              color:
+                                  _isDarkTheme ? Colors.white : Colors.black87,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -308,9 +370,11 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Type de sol',
+                            _getLocalizedTexts()['soilType']!,
                             style: TextStyle(
-                              color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                              color: _isDarkTheme
+                                  ? Colors.white60
+                                  : Colors.black54,
                               fontSize: 12,
                             ),
                           ),
@@ -318,7 +382,8 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                           Text(
                             _getSoilTypeTranslation(record.soilType),
                             style: TextStyle(
-                              color: _isDarkTheme ? Colors.white : Colors.black87,
+                              color:
+                                  _isDarkTheme ? Colors.white : Colors.black87,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -346,9 +411,11 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Métrage',
+                                  _getLocalizedTexts()['meterage']!,
                                   style: TextStyle(
-                                    color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                                    color: _isDarkTheme
+                                        ? Colors.white60
+                                        : Colors.black54,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -356,7 +423,9 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                                 Text(
                                   '${record.area.toStringAsFixed(0)} m²',
                                   style: TextStyle(
-                                    color: _isDarkTheme ? Colors.white : Colors.black87,
+                                    color: _isDarkTheme
+                                        ? Colors.white
+                                        : Colors.black87,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -382,9 +451,11 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Quantité d\'eau',
+                                  _getLocalizedTexts()['water']!,
                                   style: TextStyle(
-                                    color: _isDarkTheme ? Colors.white60 : Colors.black54,
+                                    color: _isDarkTheme
+                                        ? Colors.white60
+                                        : Colors.black54,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -392,7 +463,9 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
                                 Text(
                                   '${record.waterAmount.toStringAsFixed(0)} L',
                                   style: TextStyle(
-                                    color: _isDarkTheme ? Colors.white : Colors.black87,
+                                    color: _isDarkTheme
+                                        ? Colors.white
+                                        : Colors.black87,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -620,16 +693,17 @@ class _CropHistoryScreenState extends State<CropHistoryScreen> {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);
+    final localizedTexts = _getLocalizedTexts();
 
     if (diff.inDays == 0) {
-      return "Aujourd'hui";
+      return localizedTexts['today']!;
     } else if (diff.inDays == 1) {
-      return "Hier";
+      return localizedTexts['yesterday']!;
     } else if (diff.inDays < 7) {
-      return "Il y a ${diff.inDays} jours";
+      return localizedTexts['daysAgo']!
+          .replaceAll('{0}', diff.inDays.toString());
     } else {
       return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
     }
   }
 }
-

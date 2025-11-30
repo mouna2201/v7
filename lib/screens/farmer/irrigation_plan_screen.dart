@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -19,6 +20,7 @@ import '../../widgets/animated_humidity_circle.dart';
 import '../welcome/welcome_screen.dart';
 import 'watering_day_detail_screen.dart';
 import 'crop_history_screen.dart';
+import '../../presentation/providers/language_provider.dart';
 
 class IrrigationPlanHistoryRecord {
   final String location;
@@ -87,7 +89,7 @@ class HumidityRecord {
   }
 }
 
-class IrrigationPlanScreen extends StatefulWidget {
+class IrrigationPlanScreen extends ConsumerWidget {
   final String location;
   final String soilType;
   final List<String> cropTypes;
@@ -108,10 +110,51 @@ class IrrigationPlanScreen extends StatefulWidget {
   });
 
   @override
-  State<IrrigationPlanScreen> createState() => _IrrigationPlanScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Récupérer la langue actuelle
+    final locale = ref.watch(languageProvider);
+    final currentLang = locale.languageCode;
+
+    return _IrrigationPlanScreenContent(
+      location: location,
+      soilType: soilType,
+      cropTypes: cropTypes,
+      isSupervisor: isSupervisor,
+      areaM2: areaM2,
+      farmerName: farmerName,
+      farmerAddress: farmerAddress,
+      currentLang: currentLang,
+    );
+  }
 }
 
-class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
+class _IrrigationPlanScreenContent extends StatefulWidget {
+  final String location;
+  final String soilType;
+  final List<String> cropTypes;
+  final bool isSupervisor;
+  final double? areaM2;
+  final String? farmerName;
+  final String? farmerAddress;
+  final String currentLang;
+
+  const _IrrigationPlanScreenContent({
+    required this.location,
+    required this.soilType,
+    required this.cropTypes,
+    this.isSupervisor = false,
+    this.areaM2,
+    this.farmerName,
+    this.farmerAddress,
+    required this.currentLang,
+  });
+
+  @override
+  State<_IrrigationPlanScreenContent> createState() =>
+      _IrrigationPlanScreenState();
+}
+
+class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
   final MQTTService _mqttService = MQTTService();
   final WeatherService _weatherService = WeatherService();
   final MistralService _mistralService = MistralService();
@@ -129,6 +172,77 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   List<String>? _mistralWaterDaysKeys;
   List<CropHistoryRecord> _cropHistory = [];
   bool _isLoadingHistory = false;
+
+  // Méthode pour obtenir les textes localisés
+  Map<String, String> _getLocalizedTexts() {
+    return {
+      'fr': {
+        'viewWeek': 'Voir la semaine',
+        'weatherTitle': 'MÉTÉO - BIZERTE',
+        'currentWeather': 'Bizerte: 18°C - peu nuageux',
+        'weekForecast': 'Prévision sur 1 semaine',
+        'viewHistory': 'Voir l\'historique des cultures',
+        'readyToWater': 'Prêt à commencer l\'arrosage ?',
+        'waterDescription':
+            'Vous décidez quand démarrer le plan d\'arrosage recommandé',
+        'edit': 'Modifier',
+        'planStart': 'Début du plan',
+        'reminderTime': 'Heure du rappel',
+        'startPlan': 'Démarrer le plan d\'arrosage',
+        'wateringFreq': 'Arrosage tous les 2 jours',
+        'today': 'Aujourd\'hui',
+        'yesterday': 'Hier',
+        'location': 'Localisation',
+        'soilType': 'Type de sol',
+        'meterage': 'Métrage',
+        'water': 'Eau',
+        'daysAgo': 'Il y a {0} jours',
+      },
+      'en': {
+        'viewWeek': 'View week',
+        'weatherTitle': 'WEATHER - BIZERTE',
+        'currentWeather': 'Bizerte: 18°C - partly cloudy',
+        'weekForecast': '1-week forecast',
+        'viewHistory': 'View crop history',
+        'readyToWater': 'Ready to start watering?',
+        'waterDescription':
+            'You decide when to start the recommended irrigation plan',
+        'edit': 'Edit',
+        'planStart': 'Plan start',
+        'reminderTime': 'Reminder time',
+        'startPlan': 'Start irrigation plan',
+        'wateringFreq': 'Watering every 2 days',
+        'today': 'Today',
+        'yesterday': 'Yesterday',
+        'location': 'Location',
+        'soilType': 'Soil type',
+        'meterage': 'Area',
+        'water': 'Water',
+        'daysAgo': '{0} days ago',
+      },
+      'ar': {
+        'viewWeek': 'عرض الأسبوع',
+        'weatherTitle': 'الطقس - بنزرت',
+        'currentWeather': 'بنزرت: 18°م - غائم جزئياً',
+        'weekForecast': 'توقعات أسبوع واحد',
+        'viewHistory': 'عرض تاريخ المحاصيل',
+        'readyToWater': 'هل أنت مستعد لبدء الري؟',
+        'waterDescription': 'أنت تقرر متى تبدأ خطة الري الموصى بها',
+        'edit': 'تعديل',
+        'planStart': 'بداية الخطة',
+        'reminderTime': 'وقت التذكير',
+        'startPlan': 'بدء خطة الري',
+        'wateringFreq': 'الري كل يومين',
+        'today': 'اليوم',
+        'yesterday': 'أمس',
+        'location': 'الموقع',
+        'soilType': 'نوع التربة',
+        'meterage': 'المساحة',
+        'water': 'الماء',
+        'daysAgo': 'منذ {0} أيام',
+      },
+    }[widget.currentLang]!;
+  }
 
   // Thème local pour cette page
   ThemeData _currentTheme = AppTheme.lightTheme;
@@ -929,8 +1043,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text(
-                    'Voir la semaine',
+                  child: Text(
+                    _getLocalizedTexts()['viewWeek']!,
                     style: TextStyle(
                       color: Color(0xFF1B5E20), // Vert très foncé
                       fontSize: 12,
@@ -1027,330 +1141,336 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
 
     return Theme(
       data: theme,
-      child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    const FarmerFormScreen(farmerName: 'Agriculteur'),
-              ),
-            );
-          },
-          backgroundColor: _primaryColor,
-          child: const Icon(Icons.edit_location_alt, color: Colors.white),
-          tooltip: 'Modifier les détails de la parcelle',
-        ),
-        backgroundColor: _isDarkTheme ? Colors.black : const Color(0xFFF5F5F5),
-        appBar: AppBar(
+      child: Directionality(
+        textDirection:
+            widget.currentLang == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const FarmerFormScreen(farmerName: 'Agriculteur'),
+                ),
+              );
+            },
+            backgroundColor: _primaryColor,
+            child: const Icon(Icons.edit_location_alt, color: Colors.white),
+            tooltip: 'Modifier les détails de la parcelle',
+          ),
           backgroundColor:
-              _isDarkTheme ? const Color(0xFF1A1A1A) : _primaryColor,
-          foregroundColor: Colors.white,
-          centerTitle: true,
-          title: Column(
-            children: [
-              Text(
-                "${_l10n.irrigationPlan} - ${widget.location}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              _isDarkTheme ? Colors.black : const Color(0xFFF5F5F5),
+          appBar: AppBar(
+            backgroundColor:
+                _isDarkTheme ? const Color(0xFF1A1A1A) : _primaryColor,
+            foregroundColor: Colors.white,
+            centerTitle: true,
+            title: Column(
+              children: [
+                Text(
+                  "${_l10n.irrigationPlan} - ${widget.location}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+                if (widget.farmerName != null || widget.farmerAddress != null)
+                  Text(
+                    "${widget.farmerName ?? ''} ${widget.farmerAddress != null ? '• ${widget.farmerAddress}' : ''}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Exit',
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => const WelcomeScreen(),
+                    ),
+                    (route) => false,
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  _isDarkTheme ? Icons.light_mode : Icons.dark_mode,
                   color: Colors.white,
                 ),
+                onPressed: () {
+                  setState(() {
+                    _isDarkTheme = !_isDarkTheme;
+                    _currentTheme = _isDarkTheme
+                        ? AppTheme.irrigationTheme
+                        : AppTheme.lightTheme;
+                  });
+                },
               ),
-              if (widget.farmerName != null || widget.farmerAddress != null)
-                Text(
-                  "${widget.farmerName ?? ''} ${widget.farmerAddress != null ? '• ${widget.farmerAddress}' : ''}",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                  ),
-                ),
+              const SizedBox(width: 8),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Exit',
-              onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (_) => const WelcomeScreen(),
-                  ),
-                  (route) => false,
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(
-                _isDarkTheme ? Icons.light_mode : Icons.dark_mode,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                setState(() {
-                  _isDarkTheme = !_isDarkTheme;
-                  _currentTheme = _isDarkTheme
-                      ? AppTheme.irrigationTheme
-                      : AppTheme.lightTheme;
-                });
-              },
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        body: Column(
-          children: [
-            if (_isLoadingMistral || _mistralError != null)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_isLoadingMistral)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    else if (_mistralError != null)
-                      Text(
-                        "Erreur Mistral : $_mistralError",
-                        style: const TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                  ],
-                ),
-              ),
-            if (widget.areaM2 != null)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: _getCropTypeColor()
-                      .withOpacity(0.1), // Couleur de culture avec transparence
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _getCropTypeColor().withOpacity(0.4),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _getCropTypeColor().withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.landscape,
-                          size: 18,
-                          color: _getCropTypeColor(),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Parcelle : ${widget.location}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: _getCropTypeColor(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${widget.areaM2!.toStringAsFixed(0)} m² • Sol : ${_getSoilTypeTranslation(widget.soilType)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _getCropTypeColor().withOpacity(0.8),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: _getCropTypeColor()
-                    .withOpacity(0.1), // Couleur de culture avec transparence
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _getCropTypeColor().withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // En-tête avec icône nuage bleue
-                  Row(
+          body: Column(
+            children: [
+              if (_isLoadingMistral || _mistralError != null)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.cloud,
-                        color: _getCropTypeColor(),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "MÉTÉO - ${widget.location.toUpperCase()}",
-                        style: TextStyle(
-                          color: _getCropTypeColor(),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                      if (_isLoadingMistral)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      else if (_mistralError != null)
+                        Text(
+                          "Erreur Mistral : $_mistralError",
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 12),
                         ),
+                    ],
+                  ),
+                ),
+              if (widget.areaM2 != null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _getCropTypeColor().withOpacity(
+                        0.1), // Couleur de culture avec transparence
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _getCropTypeColor().withOpacity(0.4),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getCropTypeColor().withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  if (_isLoadingWeather)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                _getCropTypeColor()),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '🔄 Chargement météo pour ${widget.location}...',
-                          style: TextStyle(
-                            color: _getCropTypeColor(),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    )
-                  else if (_weatherError.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red, width: 1),
-                      ),
-                      child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 20,
+                          Icon(
+                            Icons.landscape,
+                            size: 18,
+                            color: _getCropTypeColor(),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              '❌ Erreur météo: $_weatherError',
-                              style: const TextStyle(
-                                color: Colors.red,
+                              'Parcelle : ${widget.location}',
+                              style: TextStyle(
                                 fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
+                                color: _getCropTypeColor(),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    )
-                  else if (_currentWeather != null)
-                    _buildWeatherCardGreenStyle(weatherData),
-                ],
-              ),
-            ),
-            // Bouton pour ouvrir la page d'historique
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-              decoration: BoxDecoration(
-                color: _getCropTypeColor(),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: _getCropTypeColor().withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CropHistoryScreen(),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${widget.areaM2!.toStringAsFixed(0)} m² • Sol : ${_getSoilTypeTranslation(widget.soilType)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _getCropTypeColor().withOpacity(0.8),
+                        ),
                       ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    ],
+                  ),
+                ),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _getCropTypeColor()
+                      .withOpacity(0.1), // Couleur de culture avec transparence
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _getCropTypeColor().withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // En-tête avec icône nuage bleue
+                    Row(
                       children: [
                         Icon(
-                          Icons.history,
-                          color: Colors.white,
+                          Icons.cloud,
+                          color: _getCropTypeColor(),
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          "Voir l'historique des cultures",
+                          "MÉTÉO - ${widget.location.toUpperCase()}",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: _getCropTypeColor(),
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 14,
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    if (_isLoadingWeather)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  _getCropTypeColor()),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '🔄 Chargement météo pour ${widget.location}...',
+                            style: TextStyle(
+                              color: _getCropTypeColor(),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      )
+                    else if (_weatherError.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red, width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '❌ Erreur météo: $_weatherError',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (_currentWeather != null)
+                      _buildWeatherCardGreenStyle(weatherData),
+                  ],
+                ),
+              ),
+              // Bouton pour ouvrir la page d'historique
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                decoration: BoxDecoration(
+                  color: _getCropTypeColor(),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getCropTypeColor().withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CropHistoryScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.history,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _getLocalizedTexts()['viewHistory']!,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: widget.cropTypes.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final crop = entry.value;
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: widget.cropTypes.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final crop = entry.value;
 
-                    return TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: 1),
-                      duration: Duration(milliseconds: 400 + index * 120),
-                      builder: (context, value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: _buildCropCard(crop, weatherData),
-                    );
-                  }).toList(),
+                      return TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: Duration(milliseconds: 400 + index * 120),
+                        builder: (context, value, child) {
+                          return Opacity(
+                            opacity: value,
+                            child: Transform.translate(
+                              offset: Offset(0, 20 * (1 - value)),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: _buildCropCard(crop, weatherData),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -2306,7 +2426,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  "Prêt à commencer l'arrosage ?",
+                  _getLocalizedTexts()['readyToWater']!,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _isDarkTheme ? Colors.white : Colors.black87,
@@ -2316,7 +2436,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "Vous décidez quand démarrer le plan d'arrosage recommandé.",
+                  _getLocalizedTexts()['waterDescription']!,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _isDarkTheme ? Colors.white70 : Colors.black54,
@@ -2345,7 +2465,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          "Début du plan : ${_selectedStartDate.day.toString().padLeft(2, '0')}/${_selectedStartDate.month.toString().padLeft(2, '0')}/${_selectedStartDate.year}",
+                          "${_getLocalizedTexts()['planStart']!} : ${_selectedStartDate.day.toString().padLeft(2, '0')}/${_selectedStartDate.month.toString().padLeft(2, '0')}/${_selectedStartDate.year}",
                           style: TextStyle(
                             color: _isDarkTheme ? Colors.white : Colors.black87,
                             fontSize: 13,
@@ -2372,8 +2492,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                             });
                           }
                         },
-                        child: const Text(
-                          "Modifier",
+                        child: Text(
+                          _getLocalizedTexts()['edit']!,
                           style: TextStyle(fontSize: 12),
                         ),
                       ),
@@ -2402,7 +2522,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          "Heure du rappel : ${_formatTimeOfDay(_reminderTime)}",
+                          "${_getLocalizedTexts()['reminderTime']!} : ${_formatTimeOfDay(_reminderTime)}",
                           style: TextStyle(
                             color: _isDarkTheme ? Colors.white : Colors.black87,
                             fontSize: 13,
@@ -2422,8 +2542,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                             });
                           }
                         },
-                        child: const Text(
-                          "Modifier",
+                        child: Text(
+                          _getLocalizedTexts()['edit']!,
                           style: TextStyle(fontSize: 12),
                         ),
                       ),
@@ -2485,8 +2605,8 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Démarrer le plan d'arrosage",
+                            Text(
+                              _getLocalizedTexts()['startPlan']!,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -2494,7 +2614,7 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
                               ),
                             ),
                             Text(
-                              "Arrosage tous les $_recommendedInterval jour${_recommendedInterval > 1 ? 's' : ''}",
+                              "${_getLocalizedTexts()['wateringFreq']!.replaceAll('2', _recommendedInterval.toString())}",
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 10,
@@ -2867,14 +2987,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               Expanded(
                 child: _buildHistoryDetail(
                   Icons.location_on,
-                  'Localisation',
+                  _getLocalizedTexts()['location']!,
                   record.location,
                 ),
               ),
               Expanded(
                 child: _buildHistoryDetail(
                   Icons.grass,
-                  'Type de sol',
+                  _getLocalizedTexts()['soilType']!,
                   _getSoilTypeTranslation(record.soilType),
                 ),
               ),
@@ -2886,14 +3006,14 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               Expanded(
                 child: _buildHistoryDetail(
                   Icons.square_foot,
-                  'Métrage',
+                  _getLocalizedTexts()['meterage']!,
                   '${record.area.toStringAsFixed(0)} m²',
                 ),
               ),
               Expanded(
                 child: _buildHistoryDetail(
                   Icons.water_drop,
-                  'Eau',
+                  _getLocalizedTexts()['water']!,
                   '${record.waterAmount.toStringAsFixed(0)} L',
                 ),
               ),
@@ -2966,13 +3086,15 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = now.difference(date);
+    final localizedTexts = _getLocalizedTexts();
 
     if (diff.inDays == 0) {
-      return "Aujourd'hui";
+      return localizedTexts['today']!;
     } else if (diff.inDays == 1) {
-      return "Hier";
+      return localizedTexts['yesterday']!;
     } else if (diff.inDays < 7) {
-      return "Il y a ${diff.inDays} jours";
+      return localizedTexts['daysAgo']!
+          .replaceAll('{0}', diff.inDays.toString());
     } else {
       return "${date.day}/${date.month}/${date.year}";
     }
@@ -3065,7 +3187,6 @@ class _IrrigationPlanScreenState extends State<IrrigationPlanScreen> {
               style: TextStyle(
                 color:
                     isUsingMQTTData ? Colors.blueAccent : Colors.orangeAccent,
-                fontSize: 12,
               ),
             ),
           ),
