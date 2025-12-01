@@ -20,6 +20,7 @@ import '../../widgets/animated_humidity_circle.dart';
 import '../welcome/welcome_screen.dart';
 import 'watering_day_detail_screen.dart';
 import 'crop_history_screen.dart';
+import 'notification_screen.dart';
 import '../../presentation/providers/language_provider.dart';
 
 class IrrigationPlanHistoryRecord {
@@ -544,6 +545,26 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
         minute: _reminderTime.minute,
       );
 
+      // Ajout de la logique de notification
+      final now = DateTime.now();
+      final selectedDateTime = DateTime(
+        _selectedStartDate.year,
+        _selectedStartDate.month,
+        _selectedStartDate.day,
+        _reminderTime.hour,
+        _reminderTime.minute,
+      );
+
+      if (selectedDateTime.isAfter(now)) {
+        NotificationService().scheduleIrrigationReminder(
+          crop: _getCropTranslation(crop),
+          intervalDays: 0,
+          startDate: selectedDateTime,
+          hour: _reminderTime.hour,
+          minute: _reminderTime.minute,
+        );
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -1060,6 +1081,7 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
                 final int rainValue = day['rain'] as int;
                 final String temp = day['temp'] as String;
                 final String minTemp = day['min'] as String;
+                final DateTime date = day['date'] as DateTime;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1067,7 +1089,7 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _getDayName(day['day'] as String),
+                        '${_getDayName(day['day'] as String)} ${date.day}',
                         style: const TextStyle(
                           color: Color(0xFF1B5E20),
                           fontSize: 11,
@@ -1188,7 +1210,7 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.logout),
+                icon: const Icon(Icons.logout, color: Colors.white),
                 tooltip: 'Exit',
                 onPressed: () {
                   Navigator.of(context).pushAndRemoveUntil(
@@ -1196,6 +1218,17 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
                       builder: (_) => const WelcomeScreen(),
                     ),
                     (route) => false,
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.white),
+                tooltip: 'Notifications',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationScreen(),
+                    ),
                   );
                 },
               ),
@@ -2260,6 +2293,7 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
                 children: weatherData.asMap().entries.map((entry) {
                   final index = entry.key;
                   final day = entry.value;
+                  final DateTime date = day['date'] as DateTime;
                   final String dayKey = day["day"] as String;
                   final int rainValue = day["rain"] as int;
                   bool isRain = rainValue > 40;
@@ -2314,6 +2348,17 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
                       child: Column(
                         children: [
                           Text(
+                            date.day.toString(),
+                            style: TextStyle(
+                              color: _isDarkTheme
+                                  ? Colors.white
+                                  : Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
                             _getDayShortName((day["day"] as String)),
                             style: TextStyle(
                               color: _isDarkTheme
@@ -2322,7 +2367,7 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
                               fontSize: 10,
                             ),
                           ),
-                          const SizedBox(height: 1),
+                          const SizedBox(height: 4),
                           Icon(
                             shouldWater ? Icons.water_drop : Icons.cloud,
                             color: shouldWater
@@ -2640,51 +2685,35 @@ class _IrrigationPlanScreenState extends State<_IrrigationPlanScreenContent> {
 
     final currentTemp = _currentWeather!.temperature.round();
     final random = Random();
+    final today = DateTime.now();
+    final weekDays = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday"
+    ];
 
-    return [
-      {
-        "day": "monday",
-        "temp": "$currentTemp°",
-        "min": "${currentTemp - 5}°",
-        "rain": _currentWeather!.humidity,
-      },
-      {
-        "day": "tuesday",
+    return List.generate(7, (index) {
+      final date = today.add(Duration(days: index));
+      final dayData = {
+        "date": date,
+        "day": weekDays[date.weekday - 1],
         "temp": "${currentTemp + random.nextInt(5) - 2}°",
         "min": "${currentTemp - 3 + random.nextInt(3)}°",
         "rain": random.nextInt(100),
-      },
-      {
-        "day": "wednesday",
-        "temp": "${currentTemp + random.nextInt(5) - 1}°",
-        "min": "${currentTemp - 4 + random.nextInt(3)}°",
-        "rain": random.nextInt(100),
-      },
-      {
-        "day": "thursday",
-        "temp": "${currentTemp + random.nextInt(5) - 3}°",
-        "min": "${currentTemp - 6 + random.nextInt(3)}°",
-        "rain": random.nextInt(100),
-      },
-      {
-        "day": "friday",
-        "temp": "${currentTemp + random.nextInt(5)}°",
-        "min": "${currentTemp - 5 + random.nextInt(3)}°",
-        "rain": random.nextInt(100),
-      },
-      {
-        "day": "saturday",
-        "temp": "${currentTemp + random.nextInt(5) + 1}°",
-        "min": "${currentTemp - 2 + random.nextInt(3)}°",
-        "rain": random.nextInt(100),
-      },
-      {
-        "day": "sunday",
-        "temp": "${currentTemp + random.nextInt(5)}°",
-        "min": "${currentTemp - 3 + random.nextInt(3)}°",
-        "rain": random.nextInt(100),
-      },
-    ];
+      };
+
+      if (index == 0) {
+        dayData["temp"] = "$currentTemp°";
+        dayData["min"] = "${currentTemp - 5}°";
+        dayData["rain"] = _currentWeather!.humidity;
+      }
+
+      return dayData;
+    });
   }
 
   String _getDayName(String dayKey) {

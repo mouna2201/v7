@@ -247,4 +247,19 @@ ${events.join('\n')}
 💡 Copiez-collez ces événements dans votre calendrier préféré!
 ''';
   }
+
+  // Récupère la liste des notifications en attente
+  Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+    if (!_initialized) await init();
+    if (kIsWeb) {
+      // Pour le web, on retourne des données mockées car la fonctionnalité n'est pas dispo
+      return [
+        const PendingNotificationRequest(
+            0, 'Rappel d\'arrosage', 'Exemple: Arrosage pour le blé demain à 8h00', null),
+        const PendingNotificationRequest(
+            1, 'Rappel d\'arrosage', 'Exemple: Arrosage pour le maïs après-demain à 9h00', null),
+      ];
+    }
+    return await _plugin.pendingNotificationRequests();
+  }
 }
